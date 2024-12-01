@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.psi.cannonduel"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.psi.cannonduel"
