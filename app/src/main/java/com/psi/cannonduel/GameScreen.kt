@@ -2,6 +2,7 @@ package com.psi.cannonduel
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +35,13 @@ import androidx.compose.ui.unit.sp
 // Función para la pantalla de juego
 @Composable
 fun GameScreen() {
+    // Posiciones iniciales de los jugadores
+    val player1Position = remember { mutableStateOf(Pair(9, 9)) } // Jugador (abajo derecha)
+    val player2Position = remember { mutableStateOf(Pair(0, 0)) } // IA (arriba izquierda)
+
+    // Estado para la casilla seleccionada
+    val selectedCell = remember { mutableStateOf<Pair<Int, Int>?>(null) }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Barra superior: Player 2
         Row(
@@ -73,14 +81,33 @@ fun GameScreen() {
 
             // Grid 10x10
             LazyColumn {
-                items(10) { _ ->
+                items(10) { rowIndex ->
                     LazyRow {
-                        items(10) { _ ->
+                        items(10) { colIndex ->
+                            // Determinar el color de la celda
+                            val cellColor = when {
+                                player1Position.value == Pair(
+                                    rowIndex,
+                                    colIndex
+                                ) -> Color.Blue // Jugador 1
+                                player2Position.value == Pair(
+                                    rowIndex,
+                                    colIndex
+                                ) -> Color.Red // IA
+                                selectedCell.value == Pair(
+                                    rowIndex,
+                                    colIndex
+                                ) -> Color.Yellow // Casilla seleccionada
+                                else -> Color.LightGray // Casilla normal
+                            }
                             Box(
                                 modifier = Modifier
                                     .size(32.dp)
                                     .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
-                                    .background(Color.LightGray, RoundedCornerShape(4.dp))
+                                    .background(cellColor, RoundedCornerShape(4.dp))
+                                    .clickable {
+                                        selectedCell.value = Pair(rowIndex, colIndex)
+                                    }// Actualizar selección
                             )
                         }
                     }
