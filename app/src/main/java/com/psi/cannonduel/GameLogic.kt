@@ -24,6 +24,7 @@ fun handleActionButtonClick(
         // Si la acción era disparar...
         "Shoot" -> handleShoot(
             selectedCell,
+            player1State,
             player2State,
             gridState,
             windDirection,
@@ -43,6 +44,7 @@ fun handleActionButtonClick(
 // Función para gestionar la lógica de disparar
 fun handleShoot(
     selectedCell: Pair<Int, Int>?,
+    player1State: PlayerState,
     player2State: PlayerState,
     gridState: Array<Array<Boolean>>,
     windDirection: String,
@@ -53,17 +55,28 @@ fun handleShoot(
     // Calculamos la casilla golpeada
     val hitCell = calculateHitCell(selectedCell!!, windDirection, windStrength)
 
-    if (hitCell == player2State.position) {
-        // Si golpeamos al enemigo, le reducimos la vida
+    // Si nos golpeamos a nosotros mismos
+    if (hitCell == player1State.position) {
+        // Nos reducimos la vida
+        player1State.hp = (player1State.hp - 1)
+        onInfoUpdate("You selected cell ${selectedCell.first},${selectedCell.second} and hit yourself at ${hitCell.first},${hitCell.second}")
+        // Si no nos queda vida, se termina la partida
+        if (player1State.hp <= 0) {
+            onInfoUpdate("You lose")
+            return
+        }
+        // Si golpeamos al enemigo
+    } else if (hitCell == player2State.position) {
+        // Le reducimos la vida
         player2State.hp = (player2State.hp - 1)
         onInfoUpdate("You selected cell ${selectedCell.first},${selectedCell.second} and hit enemy at ${hitCell.first},${hitCell.second}")
         // Si al rival no le queda vida, se termina la partida
         if (player2State.hp <= 0) {
-            onInfoUpdate("You won")
+            onInfoUpdate("You win")
             return
         }
-    } else {
         // Si fallamos, eliminamos la casilla
+    } else {
         gridState[hitCell.first][hitCell.second] = false
         onInfoUpdate("You selected cell ${selectedCell.first},${selectedCell.second} and missed at ${hitCell.first},${hitCell.second}")
     }
