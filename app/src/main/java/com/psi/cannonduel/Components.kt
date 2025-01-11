@@ -116,11 +116,11 @@ fun FuelBar(fuelLevel: Float) {
             modifier = Modifier.padding(bottom = 4.dp)
         )
         LinearProgressIndicator(
-            progress = fuelLevel,
-            color = Color.Green,
+            progress = { fuelLevel },
             modifier = Modifier
                 .fillMaxWidth(0.5f) // La barra ocupa el 50% del ancho
-                .height(12.dp)
+                .height(12.dp),
+            color = Color.Green,
         )
     }
 }

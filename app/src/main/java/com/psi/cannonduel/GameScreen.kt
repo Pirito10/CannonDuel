@@ -119,18 +119,14 @@ fun GameScreen() {
             ActionButton(
                 actionText = actionButtonText.value,
                 onActionClick = {
-                    val selected = selectedCell.value ?: return@ActionButton
-
-                    if (actionButtonText.value == "Shoot") {
-                        if (selected == player2State.value.position) {
-                            // Lógica de impacto (si es necesaria)
-                        } else {
-                            gridState.value[selected.first][selected.second] = false
-                        }
-                        actionButtonText.value = "Move"
-                    } else if (actionButtonText.value == "Move") {
-                        actionButtonText.value = "Shoot"
-                    }
+                    handleActionButtonClick(
+                        actionText = actionButtonText.value,
+                        selectedCell = selectedCell.value,
+                        player1State = player1State.value,
+                        player2State = player2State.value,
+                        gridState = gridState.value,
+                        onActionChange = { actionButtonText.value = it }
+                    )
                 }
             )
         }
