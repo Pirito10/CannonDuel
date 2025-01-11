@@ -53,6 +53,8 @@ fun GameScreen() {
         remember { mutableStateOf(Array(GRID_SIZE) { Array(GRID_SIZE) { true } }) } // True -> casilla disponible, false -> casilla destruída
     // Texto del botón de acción
     val actionButtonText = remember { mutableStateOf("Shoot") }
+    // Texto de la caja de información
+    val infoMessage = remember { mutableStateOf("Choose a target") }
 
     // Contenedor que ocupa toda la pantalla
     Box(modifier = Modifier.fillMaxSize()) {
@@ -92,7 +94,7 @@ fun GameScreen() {
             Spacer(modifier = Modifier.height(16.dp))
 
             // Caja de información
-            InfoBox(infoText = "- Choose a target")
+            InfoBox(infoText = infoMessage.value)
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -125,7 +127,11 @@ fun GameScreen() {
                         player1State = player1State.value,
                         player2State = player2State.value,
                         gridState = gridState.value,
-                        onActionChange = { actionButtonText.value = it }
+                        windDirection = windDirection.value,
+                        windStrength = windStrength.intValue,
+                        onInfoUpdate = { message -> updateInfoMessage(infoMessage, message) },
+                        onActionChange = { actionButtonText.value = it },
+                        onClearSelection = { selectedCell.value = null }
                     )
                 }
             )
