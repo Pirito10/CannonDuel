@@ -1,6 +1,7 @@
 package com.psi.cannonduel
 
 import androidx.compose.runtime.mutableStateOf
+import com.chaquo.python.PyObject
 
 // Función para gestionar la decisiones de la IA nivel fácil
 fun handleEasyAI(
@@ -68,8 +69,76 @@ fun handleMediumAI(
     gridState: Array<Array<Boolean>>,
     windDirection: String,
     windStrength: Int,
-    onGameOver: () -> Unit
+    onGameOver: () -> Unit,
+    pythonModule: PyObject
 ) {
+    // Obtener los tipos de munición disponibles
+    val availableAmmoTypes = player2State.ammo.filter { it.value > 0 }.keys
+
+    // Disparo basado en la tabla Q
+    if (availableAmmoTypes.isNotEmpty()) {
+        // Generamos las casillas disponibles
+        val availableCells = getAvailableCells(gridState)
+
+        // Elegir celda usando Q-table
+        val chosenCell = pythonModule.callAttr(
+            "handle_turn",
+            "shoot",
+            windDirection,
+            availableCells
+        ).toJava(Pair::class.java) as Pair<Int, Int>
+
+        // Elegimos un tipo de munición (por simplicidad, aleatorio entre los disponibles)
+        val selectedAmmoType = availableAmmoTypes.random()
+
+        // Procesar el disparo
+        processShot(
+            chosenCell,
+            selectedAmmo = mutableStateOf(selectedAmmoType),
+            windDirection,
+            windStrength,
+            player2State,
+            player1State,
+            gridState
+        )
+
+        // Actualizar la tabla Q de disparo
+        pythonModule.callAttr(
+            "handle_turn",
+            "update_shoot",
+            windDirection,
+            chosenCell,
+            calculateShotReward(chosenCell, player1State) // Recompensa
+        )
+    }
+
+    // Comprobar si terminó la partida
+    if (checkGameOver(player1State, player2State)) {
+        onGameOver()
+        return
+    }
+
+    // Movimiento basado en la tabla Q
+    val availableCellsForMove = getAvailableCells(gridState)
+    val chosenMove = pythonModule.callAttr(
+        "handle_turn",
+        "move",
+        availableCellsForMove,
+        player2State.fuel,
+        player2State.position
+    ).toJava(Pair::class.java) as Pair<Int, Int>
+
+    // Procesar el movimiento
+    if (processMove(chosenMove, player2State, player1State, gridState)) {
+        // Actualizar la tabla Q de movimiento
+        pythonModule.callAttr(
+            "handle_turn",
+            "update_move",
+            player2State.position,
+            chosenMove,
+            calculateMoveReward(player2State, player1State) // Recompensa
+        )
+    }
 }
 
 // Función para gestionar la decisiones de la IA nivel difícil
@@ -81,4 +150,19 @@ fun handleHardAI(
     windStrength: Int,
     onGameOver: () -> Unit
 ) {
+}
+
+fun calculateShotReward(target: Pair<*, *>, enemyState: PlayerState): Int {
+    return when (target) {
+        enemyState.position -> 20 // Impacto directo
+        else -> -2 // Penalización por fallo
+    }
+}
+
+fun calculateMoveReward(playerState: PlayerState, enemyState: PlayerState): Int {
+    return if (playerState.position == enemyState.position) {
+        -10 // Penalización por moverse al mismo lugar que el enemigo
+    } else {
+        5 // Recompensa por moverse estratégicamente
+    }
 }

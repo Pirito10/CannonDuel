@@ -1,6 +1,7 @@
 package com.psi.cannonduel
 
 import androidx.compose.runtime.MutableState
+import com.chaquo.python.PyObject
 import java.util.LinkedList
 
 // Función para manejar la lógica del botón de acción
@@ -18,34 +19,33 @@ fun handleActionButtonClick(
     onInfoUpdate: (String) -> Unit,
     onActionChange: (String) -> Unit,
     onClearSelection: () -> Unit,
-    onGameOver: () -> Unit
+    onGameOver: () -> Unit,
+    pythonModule: PyObject
 ) {
     if (player == "AI") {
         while (!checkGameOver(player1State, player2State)) {
-            handleNext(
-                difficulty,
+            handleMediumAI(
                 player1State,
                 player2State,
                 gridState,
                 windDirection.value,
                 windStrength.value,
-                onActionChange,
-                onGameOver
+                onGameOver,
+                pythonModule
             )
 
             // Verificamos si el juego termina después del turno del jugador 1
             if (checkGameOver(player1State, player2State)) break
 
             // Turno del jugador 2 (IA)
-            handleNext(
-                difficulty,
+            handleMediumAI(
                 player2State,
                 player1State, // Intercambiamos el orden de los estados
                 gridState,
                 windDirection.value,
                 windStrength.value,
-                onActionChange,
-                onGameOver
+                onGameOver,
+                pythonModule
             )
 
             updateWind(windDirection, windStrength) // Actualizamos el viento
@@ -87,7 +87,8 @@ fun handleActionButtonClick(
                 windDirection.value,
                 windStrength.value,
                 onActionChange,
-                onGameOver
+                onGameOver,
+                pythonModule
             )
             // Actualizamos el viento
             updateWind(windDirection, windStrength)
@@ -171,7 +172,8 @@ fun handleNext(
     windDirection: String,
     windStrength: Int,
     onActionChange: (String) -> Unit,
-    onGameOver: () -> Unit
+    onGameOver: () -> Unit,
+    pythonModule: PyObject
 ) {
     // Gestionamos el turno del rival según la dificultad seleccionada
     when (difficulty) {
@@ -190,7 +192,8 @@ fun handleNext(
             gridState,
             windDirection,
             windStrength,
-            onGameOver
+            onGameOver,
+            pythonModule
         )
 
         "Hard" -> handleHardAI(
@@ -493,4 +496,16 @@ fun checkGameOver(
     }
 
     return false
+}
+
+fun getAvailableCells(gridState: Array<Array<Boolean>>): List<Pair<Int, Int>> {
+    val availableCells = mutableListOf<Pair<Int, Int>>()
+    for (row in gridState.indices) {
+        for (col in gridState[row].indices) {
+            if (gridState[row][col]) {
+                availableCells.add(Pair(row, col))
+            }
+        }
+    }
+    return availableCells
 }

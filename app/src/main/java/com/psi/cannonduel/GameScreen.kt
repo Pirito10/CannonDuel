@@ -16,6 +16,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.chaquo.python.PyObject
+import com.chaquo.python.Python
 
 // Clase para encapsular el estado de los jugadores
 data class PlayerState(
@@ -83,6 +85,10 @@ fun GameScreen(player: String, difficulty: String, onGameOver: () -> Unit) {
     val actionButtonText = remember { mutableStateOf("Shoot") }
     // Texto de la caja de información
     val infoMessage = remember { mutableStateOf("Choose a target") }
+
+    val python = Python.getInstance()
+    val pythonModule: PyObject = python.getModule("hard")
+
 
     // Contenedor que ocupa toda la pantalla
     Box(modifier = Modifier.fillMaxSize()) {
@@ -165,7 +171,8 @@ fun GameScreen(player: String, difficulty: String, onGameOver: () -> Unit) {
                         onInfoUpdate = { message -> updateInfoMessage(infoMessage, message) },
                         onActionChange = { actionButtonText.value = it },
                         onClearSelection = { selectedCell.value = null },
-                        onGameOver = onGameOver
+                        onGameOver = onGameOver,
+                        pythonModule = pythonModule
                     )
                 }
             )

@@ -43,6 +43,14 @@ android {
     }
 }
 
+chaquopy {
+    defaultConfig {
+        pip {
+            install("numpy")
+        }
+    }
+}
+
 dependencies {
 
     implementation(libs.androidx.core.ktx)
