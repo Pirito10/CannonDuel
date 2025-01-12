@@ -8,6 +8,7 @@ fun handleActionButtonClick(
     difficulty: String,
     actionText: String,
     selectedCell: Pair<Int, Int>?,
+    selectedAmmo: MutableState<String>,
     player1State: PlayerState,
     player2State: PlayerState,
     gridState: Array<Array<Boolean>>,
@@ -22,6 +23,7 @@ fun handleActionButtonClick(
         // Si la acción era disparar, gestionamos el disparo
         "Shoot" -> handleShoot(
             selectedCell,
+            selectedAmmo,
             player1State,
             player2State,
             gridState,
@@ -65,6 +67,7 @@ fun handleActionButtonClick(
 // Función para gestionar la lógica de disparar
 fun handleShoot(
     selectedCell: Pair<Int, Int>?,
+    selectedAmmo: MutableState<String>,
     player1State: PlayerState,
     player2State: PlayerState,
     gridState: Array<Array<Boolean>>,
@@ -81,7 +84,15 @@ fun handleShoot(
     }
 
     // Procesamos el disparo
-    processShot(selectedCell, windDirection, windStrength, player1State, player2State, gridState)
+    processShot(
+        selectedCell,
+        selectedAmmo,
+        windDirection,
+        windStrength,
+        player1State,
+        player2State,
+        gridState
+    )
 
     // Comprobamos si se terminó la partida
     if (checkGameOver(player1State, player2State)) {
@@ -164,12 +175,17 @@ fun handleNext(
 // Función para procesar un disparo
 fun processShot(
     targetCell: Pair<Int, Int>,
+    selectedAmmo: MutableState<String>,
     windDirection: String,
     windStrength: Int,
     shooterState: PlayerState,
     targetState: PlayerState,
     gridState: Array<Array<Boolean>>
 ) {
+    // Reducimos la munición del tipo seleccionado
+    val ammoType = selectedAmmo.value
+    shooterState.ammo[ammoType] = shooterState.ammo[ammoType]!! - 1
+
     // Calculamos la casilla golpeada
     val hitCell = calculateHitCell(targetCell, windDirection, windStrength)
 
@@ -358,7 +374,7 @@ fun checkGameOver(
 
     // TODO
     // Comprobamos si ambos jugadores se han quedado sin munición
-    if (player1State.ammo <= 0 && player2State.ammo <= 0) {
+    if (player1State.ammo.all { it.value <= 0 } && player2State.ammo.all { it.value <= 0 }) {
         return true
     }
 

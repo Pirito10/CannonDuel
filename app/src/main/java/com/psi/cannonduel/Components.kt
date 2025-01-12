@@ -143,15 +143,24 @@ fun FuelBar(fuelLevel: Float) {
 
 // Selector de munición
 @Composable
-fun AmmoSelector(selectedAmmo: String, onAmmoChange: (String) -> Unit) {
+fun AmmoSelector(
+    selectedAmmo: String,
+    ammoCounts: Map<String, Int>,
+    onAmmoChange: (String) -> Unit
+) {
     Column {
-        listOf("Ammo 1", "Ammo 2", "Ammo 3").forEach { ammo ->
+        ammoCounts.forEach { (ammo, count) ->
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(
                     selected = (selectedAmmo == ammo),
-                    onClick = { onAmmoChange(ammo) }
+                    onClick = {
+                        if (count > 0) {
+                            onAmmoChange(ammo)
+                        }
+                    },
+                    enabled = count > 0
                 )
-                Text(text = ammo, fontSize = 14.sp)
+                Text(text = "$ammo: $count", fontSize = 14.sp)
             }
         }
     }

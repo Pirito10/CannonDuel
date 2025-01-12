@@ -20,14 +20,16 @@ import androidx.compose.ui.unit.dp
 // Clase para encapsular el estado de los jugadores
 data class PlayerState(
     var hp: Int,
-    var ammo: Int,
+    var ammo: MutableMap<String, Int>,
     var fuel: Int,
     var position: Pair<Int, Int>
 )
 
 // Constantes con valores por defecto
 const val MAX_HP = 5
-const val MAX_AMMO = 30
+const val MAX_STANDARD_AMMO = 10
+const val MAX_PRECISION_AMMO = 5
+const val MAX_NUKE_AMMO = 2
 const val MAX_FUEL = 100
 const val GRID_SIZE = 10
 
@@ -37,9 +39,35 @@ fun GameScreen(difficulty: String, onGameOver: () -> Unit) {
     // TODO randomizar posición de inicio
     // Estados de los jugadores
     val player1State =
-        remember { mutableStateOf(PlayerState(MAX_HP, MAX_AMMO, MAX_FUEL, Pair(9, 9))) }
+        remember {
+            mutableStateOf(
+                PlayerState(
+                    MAX_HP,
+                    mutableMapOf(
+                        "Standard" to MAX_STANDARD_AMMO,
+                        "Precision" to MAX_PRECISION_AMMO,
+                        "Nuke" to MAX_NUKE_AMMO
+                    ),
+                    MAX_FUEL,
+                    Pair(9, 9)
+                )
+            )
+        }
     val player2State =
-        remember { mutableStateOf(PlayerState(MAX_HP, MAX_AMMO, MAX_FUEL, Pair(0, 0))) }
+        remember {
+            mutableStateOf(
+                PlayerState(
+                    MAX_HP,
+                    mutableMapOf(
+                        "Standard" to MAX_STANDARD_AMMO,
+                        "Precision" to MAX_PRECISION_AMMO,
+                        "Nuke" to MAX_NUKE_AMMO
+                    ),
+                    MAX_FUEL,
+                    Pair(0, 0)
+                )
+            )
+        }
     // Dirección del viento
     val windDirection = remember { mutableStateOf("N") }
     // Fuerza del viento
@@ -47,7 +75,7 @@ fun GameScreen(difficulty: String, onGameOver: () -> Unit) {
     // Casilla seleccionada
     val selectedCell = remember { mutableStateOf<Pair<Int, Int>?>(null) }
     // Munición seleccionada
-    val selectedAmmo = remember { mutableStateOf("Ammo 1") }
+    val selectedAmmo = remember { mutableStateOf("Standard") }
     // Estado del grid
     val gridState =
         remember { mutableStateOf(Array(GRID_SIZE) { Array(GRID_SIZE) { true } }) } // True -> casilla disponible, false -> casilla destruída
@@ -115,6 +143,7 @@ fun GameScreen(difficulty: String, onGameOver: () -> Unit) {
             // Selector de munición
             AmmoSelector(
                 selectedAmmo = selectedAmmo.value,
+                ammoCounts = player1State.value.ammo,
                 onAmmoChange = { selectedAmmo.value = it }
             )
 
@@ -126,6 +155,7 @@ fun GameScreen(difficulty: String, onGameOver: () -> Unit) {
                         difficulty = difficulty,
                         actionText = actionButtonText.value,
                         selectedCell = selectedCell.value,
+                        selectedAmmo = selectedAmmo,
                         player1State = player1State.value,
                         player2State = player2State.value,
                         gridState = gridState.value,

@@ -1,5 +1,7 @@
 package com.psi.cannonduel
 
+import androidx.compose.runtime.mutableStateOf
+
 // Función para gestionar la decisiones de la IA nivel fácil
 fun handleEasyAI(
     player1State: PlayerState,
@@ -9,20 +11,30 @@ fun handleEasyAI(
     windStrength: Int,
     onGameOver: () -> Unit
 ) {
-    // Generamos una casilla aleatoria
-    val randomRow = (0 until GRID_SIZE).random()
-    val randomCol = (0 until GRID_SIZE).random()
-    val selectedCell = Pair(randomRow, randomCol)
+    // Filtramos los tipos de munición disponibles
+    val availableAmmoTypes = player2State.ammo.filter { it.value > 0 }.keys
 
-    // Procesamos el disparo
-    processShot(
-        selectedCell,
-        windDirection,
-        windStrength,
-        player1State,
-        player2State,
-        gridState
-    )
+    // Disparamos si nos queda munición
+    if (availableAmmoTypes.isNotEmpty()) {
+        // Generamos una casilla aleatoria
+        val randomRow = (0 until GRID_SIZE).random()
+        val randomCol = (0 until GRID_SIZE).random()
+        val selectedCell = Pair(randomRow, randomCol)
+
+        // Elegimos un tipo de munición aleatorio
+        val selectedAmmoType = availableAmmoTypes.random()
+
+        // Procesamos el disparo
+        processShot(
+            selectedCell,
+            selectedAmmo = mutableStateOf(selectedAmmoType),
+            windDirection,
+            windStrength,
+            player2State,
+            player1State,
+            gridState
+        )
+    }
 
     // Comprobamos si se terminó la partida
     if (checkGameOver(player1State, player2State)) {
