@@ -124,19 +124,26 @@ fun handleNext(
         onGameOver()
     }
 
-    // TODO mejorar aquí
     // Intentamos mover a la IA
     var moved = false
-    var attempts = 0
-    while (!moved && attempts < 100) {
+    val triedCells = mutableSetOf<Pair<Int, Int>>()
+    val totalCells = GRID_SIZE * GRID_SIZE
+    while (!moved && triedCells.size < totalCells) {
         // Generamos una casilla aleatoria
-        randomRow = (0..9).random()
-        randomCol = (0..9).random()
+        randomRow = (0 until GRID_SIZE).random()
+        randomCol = (0 until GRID_SIZE).random()
         selectedCell = Pair(randomRow, randomCol)
+
+        // Si la casilla ya fue probada, la ignoramos
+        if (triedCells.contains(selectedCell)) {
+            continue
+        }
+
+        // Marcamos la casilla como probada
+        triedCells.add(selectedCell)
 
         // Procesamos el movimiento
         moved = processMove(selectedCell, player2State, gridState)
-        attempts++
     }
 
     // Cambiamos el botón de acción
@@ -185,6 +192,11 @@ fun processMove(
 ): Boolean {
     // Comprobamos si la casilla está disponible o destruída
     if (!gridState[selectedCell.first][selectedCell.second]) {
+        return false
+    }
+
+    // Comprobamos si hay un camino válido
+    if (!isPathAvailable(playerState.position, selectedCell, gridState)) {
         return false
     }
 
@@ -248,7 +260,7 @@ fun calculateDistance(
 ): Int {
     val rowDistance = kotlin.math.abs(end.first - start.first)
     val colDistance = kotlin.math.abs(end.second - start.second)
-    return kotlin.math.max(rowDistance, colDistance)
+    return rowDistance + colDistance
 }
 
 // Función para actualizar el viento
@@ -274,6 +286,42 @@ fun updateWind(
 fun updateInfoMessage(infoMessage: MutableState<String>, message: String) {
     infoMessage.value = message
 }
+
+// Función para comprobar si hay un camino válido entre dos casillas
+fun isPathAvailable(
+    start: Pair<Int, Int>,
+    end: Pair<Int, Int>,
+    gridState: Array<Array<Boolean>>
+): Boolean {
+    val (startRow, startCol) = start
+    val (endRow, endCol) = end
+
+    // Verificamos movimiento horizontal
+    if (startRow == endRow) {
+        val range = if (startCol < endCol) startCol..endCol else endCol..startCol
+        for (col in range) {
+            if (!gridState[startRow][col]) {
+                return false // Casilla destruida en el camino
+            }
+        }
+    }
+    // Verificamos movimiento vertical
+    else if (startCol == endCol) {
+        val range = if (startRow < endRow) startRow..endRow else endRow..startRow
+        for (row in range) {
+            if (!gridState[row][startCol]) {
+                return false // Casilla destruida en el camino
+            }
+        }
+    }
+    // Movimiento diagonal no permitido
+    else {
+        return false
+    }
+
+    return true // Camino válido
+}
+
 
 fun checkGameOver(
     player1State: PlayerState,
