@@ -15,7 +15,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 // Clase para encapsular el estado de los jugadores
@@ -27,14 +26,14 @@ data class PlayerState(
 )
 
 // Constantes con valores por defecto
-const val MAX_HP = 10
+const val MAX_HP = 5
 const val MAX_AMMO = 30
 const val MAX_FUEL = 100
 const val GRID_SIZE = 10
 
 // Función para la pantalla de juego
 @Composable
-fun GameScreen() {
+fun GameScreen(onGameOver: () -> Unit) {
     // Estados de los jugadores
     val player1State =
         remember { mutableStateOf(PlayerState(MAX_HP, MAX_AMMO, MAX_FUEL, Pair(9, 9))) }
@@ -131,16 +130,11 @@ fun GameScreen() {
                         windStrength = windStrength,
                         onInfoUpdate = { message -> updateInfoMessage(infoMessage, message) },
                         onActionChange = { actionButtonText.value = it },
-                        onClearSelection = { selectedCell.value = null }
+                        onClearSelection = { selectedCell.value = null },
+                        onGameOver = onGameOver
                     )
                 }
             )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewGameScreen() {
-    GameScreen()
 }

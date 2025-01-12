@@ -38,6 +38,10 @@ fun AppContent() {
             currentScreen = "gameScreen"
         })
 
-        "gameScreen" -> GameScreen()
+        "gameScreen" -> GameScreen(onGameOver = {
+            currentScreen = "gameOverScreen"
+        })
+
+        "gameOverScreen" -> GameOverScreen()
     }
 }

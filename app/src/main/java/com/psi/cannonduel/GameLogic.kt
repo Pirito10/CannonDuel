@@ -13,7 +13,8 @@ fun handleActionButtonClick(
     windStrength: MutableState<Int>,
     onInfoUpdate: (String) -> Unit,
     onActionChange: (String) -> Unit,
-    onClearSelection: () -> Unit
+    onClearSelection: () -> Unit,
+    onGameOver: () -> Unit
 ) {
     when (actionText) {
         // Si la acción era disparar...
@@ -25,7 +26,8 @@ fun handleActionButtonClick(
             windDirection.value,
             windStrength.value,
             onInfoUpdate,
-            onActionChange
+            onActionChange,
+            onGameOver
         )
 
         // Si la acción era moverse...
@@ -39,7 +41,8 @@ fun handleActionButtonClick(
                 gridState,
                 windDirection.value,
                 windStrength.value,
-                onActionChange
+                onActionChange,
+                onGameOver
             )
             updateWind(windDirection, windStrength)
         }
@@ -58,7 +61,8 @@ fun handleShoot(
     windDirection: String,
     windStrength: Int,
     onInfoUpdate: (String) -> Unit,
-    onActionChange: (String) -> Unit
+    onActionChange: (String) -> Unit,
+    onGameOver: () -> Unit
 ) {
     // Comprobamos si se ha seleccionado una casilla
     if (selectedCell == null) {
@@ -68,6 +72,9 @@ fun handleShoot(
 
     // Procesamos el disparo
     processShot(selectedCell, windDirection, windStrength, player1State, player2State, gridState)
+    if (checkGameOver(player1State, player2State)) {
+        onGameOver()
+    }
 
     // Cambiamos el botón de acción
     onActionChange("Move")
@@ -103,7 +110,8 @@ fun handleNext(
     gridState: Array<Array<Boolean>>,
     windDirection: String,
     windStrength: Int,
-    onActionChange: (String) -> Unit
+    onActionChange: (String) -> Unit,
+    onGameOver: () -> Unit
 ) {
     // Generamos una casilla aleatoria
     var randomRow = (0..9).random()
@@ -112,6 +120,9 @@ fun handleNext(
 
     // Procesamos el disparo
     processShot(selectedCell, windDirection, windStrength, player1State, player2State, gridState)
+    if (checkGameOver(player1State, player2State)) {
+        onGameOver()
+    }
 
     // TODO mejorar aquí
     // Intentamos mover a la IA
@@ -149,20 +160,14 @@ fun processShot(
         shooterState.position -> {
             // Reducimos la vida
             shooterState.hp = (shooterState.hp - 1)
-            if (shooterState.hp <= 0) {
-                // TODO endGame()
-                return
-            }
+            return
         }
 
         // Si golpea al objetivo
         targetState.position -> {
             // Reducimos la vida
             targetState.hp = (targetState.hp - 1)
-            if (targetState.hp <= 0) {
-                // TODO endGame()
-                return
-            }
+            return
         }
 
         // Si falla marcamos la casilla como destruída
@@ -265,8 +270,28 @@ fun updateWind(
     windDirection.value = directions[newIndex]
 }
 
-
 // Función para actualizar el texto de la caja de información
 fun updateInfoMessage(infoMessage: MutableState<String>, message: String) {
     infoMessage.value = message
+}
+
+fun checkGameOver(
+    player1State: PlayerState,
+    player2State: PlayerState
+): Boolean {
+    // Condición 1: Vida de los jugadores
+    if (player1State.hp <= 0 && player2State.hp <= 0) {
+        return true
+    } else if (player1State.hp <= 0) {
+        return true
+    } else if (player2State.hp <= 0) {
+        return true
+    }
+
+    // Condición 2: Munición
+    if (player1State.ammo <= 0 && player2State.ammo <= 0) {
+        return true
+    }
+
+    return false
 }
