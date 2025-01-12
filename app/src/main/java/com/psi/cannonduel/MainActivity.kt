@@ -28,6 +28,7 @@ class MainActivity : ComponentActivity() {
 fun ManageNavigation() {
     // Variable con la pantalla actual
     var currentScreen by remember { mutableStateOf("playerSelectionScreen") }
+    // Variable con la dificultad seleccionada
     var difficulty by remember { mutableStateOf("Medium") }
 
     when (currentScreen) {

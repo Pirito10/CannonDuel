@@ -34,6 +34,7 @@ const val GRID_SIZE = 10
 // Función para la pantalla de juego
 @Composable
 fun GameScreen(difficulty: String, onGameOver: () -> Unit) {
+    // TODO randomizar posición de inicio
     // Estados de los jugadores
     val player1State =
         remember { mutableStateOf(PlayerState(MAX_HP, MAX_AMMO, MAX_FUEL, Pair(9, 9))) }
@@ -78,15 +79,16 @@ fun GameScreen(difficulty: String, onGameOver: () -> Unit) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Título del viento
+            // Información del viento
             WindInfo(direction = windDirection.value, strength = windStrength.intValue)
 
-            // Grid 10x10
+            // Grid de juego
             GameGrid(
+                gridSize = GRID_SIZE,
+                gridState = gridState.value,
                 player1Position = player1State.value.position,
                 player2Position = player2State.value.position,
                 selectedCell = selectedCell.value,
-                gridState = gridState.value,
                 onCellClick = { selectedCell.value = it }
             )
 

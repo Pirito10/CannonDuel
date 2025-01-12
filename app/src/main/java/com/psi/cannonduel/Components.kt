@@ -29,11 +29,7 @@ import androidx.compose.ui.unit.sp
 
 // Barra de información del jugador
 @Composable
-fun PlayerBar(
-    playerName: String,
-    progress: Float,
-    modifier: Modifier = Modifier
-) {
+fun PlayerBar(playerName: String, progress: Float, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -41,44 +37,62 @@ fun PlayerBar(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Nombre del jugador
         Text(
             text = playerName,
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold
         )
+        // HP del jugador
         LinearProgressIndicator(
             progress = { progress },
             modifier = Modifier
-                .width(150.dp)
+                .width(180.dp)
                 .height(12.dp),
             color = Color.Green,
         )
     }
 }
 
+// Información del viento
+@Composable
+fun WindInfo(direction: String, strength: Int) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text("Wind", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Text("Direction: $direction  Strength: $strength", fontSize = 16.sp)
+    }
+}
+
 // Grid de juego
 @Composable
 fun GameGrid(
+    gridSize: Int,
     gridState: Array<Array<Boolean>>,
     player1Position: Pair<Int, Int>,
     player2Position: Pair<Int, Int>,
     selectedCell: Pair<Int, Int>?,
     onCellClick: (Pair<Int, Int>) -> Unit
 ) {
+    // Columnas
     LazyColumn {
-        items(10) { rowIndex ->
+        items(gridSize) { rowIndex ->
+            // Filas
             LazyRow {
-                items(10) { colIndex ->
-                    // Determinar el color de la celda
+                items(gridSize) { colIndex ->
+                    // Color de la celda
                     val cellColor = when {
                         player1Position == Pair(rowIndex, colIndex) -> Color.Blue // Jugador
+                        // TODO no mostrar ubicación real
                         player2Position == Pair(rowIndex, colIndex) -> Color.Red // IA
-                        selectedCell == Pair(rowIndex, colIndex) -> Color.Yellow // Seleccionada
-                        !gridState[rowIndex][colIndex] -> Color.Black // Anulada
+                        selectedCell == Pair(
+                            rowIndex,
+                            colIndex
+                        ) -> Color.Yellow // Casilla seleccionada
+                        !gridState[rowIndex][colIndex] -> Color.Black // Destruída
                         else -> Color.LightGray // Normal
                     }
 
-                    // Renderizar celda
+                    // Celdas
                     Box(
                         modifier = Modifier
                             .size(32.dp)
@@ -92,6 +106,7 @@ fun GameGrid(
     }
 }
 
+// Caja de información
 @Composable
 fun InfoBox(infoText: String) {
     Column(
@@ -106,6 +121,7 @@ fun InfoBox(infoText: String) {
     }
 }
 
+// Barra de combustible
 @Composable
 fun FuelBar(fuelLevel: Float) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -118,18 +134,16 @@ fun FuelBar(fuelLevel: Float) {
         LinearProgressIndicator(
             progress = { fuelLevel },
             modifier = Modifier
-                .fillMaxWidth(0.5f) // La barra ocupa el 50% del ancho
+                .fillMaxWidth(1.0f)
                 .height(12.dp),
             color = Color.Green,
         )
     }
 }
 
+// Selector de munición
 @Composable
-fun AmmoSelector(
-    selectedAmmo: String,
-    onAmmoChange: (String) -> Unit
-) {
+fun AmmoSelector(selectedAmmo: String, onAmmoChange: (String) -> Unit) {
     Column {
         listOf("Ammo 1", "Ammo 2", "Ammo 3").forEach { ammo ->
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -143,11 +157,9 @@ fun AmmoSelector(
     }
 }
 
+// Botón de acción
 @Composable
-fun ActionButton(
-    actionText: String,
-    onActionClick: () -> Unit
-) {
+fun ActionButton(actionText: String, onActionClick: () -> Unit) {
     Button(
         onClick = onActionClick,
         modifier = Modifier
@@ -156,13 +168,5 @@ fun ActionButton(
             .width(120.dp)
     ) {
         Text(actionText, fontSize = 16.sp)
-    }
-}
-
-@Composable
-fun WindInfo(direction: String, strength: Int) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Wind", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Text("Direction: $direction  Strength: $strength", fontSize = 16.sp)
     }
 }
