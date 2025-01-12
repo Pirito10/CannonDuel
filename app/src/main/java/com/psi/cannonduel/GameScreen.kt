@@ -35,7 +35,7 @@ const val GRID_SIZE = 10
 
 // Función para la pantalla de juego
 @Composable
-fun GameScreen(difficulty: String, onGameOver: () -> Unit) {
+fun GameScreen(player: String, difficulty: String, onGameOver: () -> Unit) {
     // TODO randomizar posición de inicio
     // Estados de los jugadores
     val player1State =
@@ -152,6 +152,7 @@ fun GameScreen(difficulty: String, onGameOver: () -> Unit) {
                 actionText = actionButtonText.value,
                 onActionClick = {
                     handleActionButtonClick(
+                        player = player,
                         difficulty = difficulty,
                         actionText = actionButtonText.value,
                         selectedCell = selectedCell.value,

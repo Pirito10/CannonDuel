@@ -5,6 +5,7 @@ import java.util.LinkedList
 
 // Función para manejar la lógica del botón de acción
 fun handleActionButtonClick(
+    player: String,
     difficulty: String,
     actionText: String,
     selectedCell: Pair<Int, Int>?,
@@ -19,6 +20,38 @@ fun handleActionButtonClick(
     onClearSelection: () -> Unit,
     onGameOver: () -> Unit
 ) {
+    if (player == "AI") {
+        while (!checkGameOver(player1State, player2State)) {
+            handleNext(
+                difficulty,
+                player1State,
+                player2State,
+                gridState,
+                windDirection.value,
+                windStrength.value,
+                onActionChange,
+                onGameOver
+            )
+
+            // Verificamos si el juego termina después del turno del jugador 1
+            if (checkGameOver(player1State, player2State)) break
+
+            // Turno del jugador 2 (IA)
+            handleNext(
+                difficulty,
+                player2State,
+                player1State, // Intercambiamos el orden de los estados
+                gridState,
+                windDirection.value,
+                windStrength.value,
+                onActionChange,
+                onGameOver
+            )
+
+            updateWind(windDirection, windStrength) // Actualizamos el viento
+        }
+    }
+
     when (actionText) {
         // Si la acción era disparar, gestionamos el disparo
         "Shoot" -> handleShoot(
@@ -39,6 +72,7 @@ fun handleActionButtonClick(
             selectedCell,
             gridState,
             player1State,
+            player2State,
             onInfoUpdate,
             onActionChange
         )
@@ -108,6 +142,7 @@ fun handleMove(
     selectedCell: Pair<Int, Int>?,
     gridState: Array<Array<Boolean>>,
     player1State: PlayerState,
+    player2State: PlayerState,
     onInfoUpdate: (String) -> Unit,
     onActionChange: (String) -> Unit
 ) {
@@ -118,7 +153,7 @@ fun handleMove(
     }
 
     // Procesamos el movimiento
-    if (!processMove(selectedCell, player1State, gridState)) {
+    if (!processMove(selectedCell, player1State, player2State, gridState)) {
         // Si no se pudo realizar el movimiento, no hacemos nada
         return
     }
@@ -186,24 +221,99 @@ fun processShot(
     val ammoType = selectedAmmo.value
     shooterState.ammo[ammoType] = shooterState.ammo[ammoType]!! - 1
 
-    // Calculamos la casilla golpeada
-    val hitCell = calculateHitCell(targetCell, windDirection, windStrength)
+    when (ammoType) {
+        "Standard" -> {
+            val damage = 2
 
-    when (hitCell) {
-        // Si se golpea a sí mismo, le reducimos la vida
-        shooterState.position -> {
-            shooterState.hp = (shooterState.hp - 1)
-            return
+            // Calculamos la casilla golpeada
+            val hitCell = calculateHitCell(targetCell, windDirection, windStrength)
+
+            when (hitCell) {
+                // Si se golpea a sí mismo, le reducimos la vida
+                shooterState.position -> {
+                    shooterState.hp = (shooterState.hp - damage).coerceAtLeast(0)
+                    return
+                }
+
+                // Si golpea al rival, le reducimos la vida
+                targetState.position -> {
+                    targetState.hp = (targetState.hp - damage).coerceAtLeast(0)
+                    return
+                }
+
+                // Si falla, marcamos la casilla como destruída
+                else -> gridState[hitCell.first][hitCell.second] = false
+            }
         }
 
-        // Si golpea al rival, le reducimos la vida
-        targetState.position -> {
-            targetState.hp = (targetState.hp - 1)
-            return
+        "Precision" -> {
+            val damage = 1
+
+            when (targetCell) {
+                // Si se golpea a sí mismo, le reducimos la vida
+                shooterState.position -> {
+                    shooterState.hp = (shooterState.hp - damage).coerceAtLeast(0)
+                    return
+                }
+
+                // Si golpea al rival, le reducimos la vida
+                targetState.position -> {
+                    targetState.hp = (targetState.hp - damage).coerceAtLeast(0)
+                    return
+                }
+
+                // Si falla, marcamos la casilla como destruída
+                else -> gridState[targetCell.first][targetCell.second] = false
+            }
         }
 
-        // Si falla, marcamos la casilla como destruída
-        else -> gridState[hitCell.first][hitCell.second] = false
+        "Nuke" -> {
+            val damage = 3
+
+            // Calculamos la casilla golpeada
+            val hitCell = calculateHitCell(targetCell, windDirection, windStrength)
+
+            for (rowOffset in -1..1) {
+                for (colOffset in -1..1) {
+                    val affectedRow = hitCell.first + rowOffset
+                    val affectedCol = hitCell.second + colOffset
+
+                    if (affectedRow in gridState.indices && affectedCol in gridState[0].indices) {
+                        val affectedCell = Pair(affectedRow, affectedCol)
+
+                        // Si el rival está en la casilla afectada, le reducimos la vida
+                        if (affectedCell == targetState.position) {
+                            targetState.hp = (targetState.hp - damage).coerceAtLeast(0)
+                        }
+                        // Si el propio jugador está en la casilla afectada, se reduce su vida
+                        else if (affectedCell == shooterState.position) {
+                            shooterState.hp = (shooterState.hp - damage).coerceAtLeast(0)
+                        }
+                        // Si no hay jugadores, destruimos la casilla
+                        else {
+                            gridState[affectedRow][affectedCol] = false
+                        }
+                    }
+                }
+            }
+
+            when (hitCell) {
+                // Si se golpea a sí mismo, le reducimos la vida
+                shooterState.position -> {
+                    shooterState.hp = (shooterState.hp - damage).coerceAtLeast(0)
+                    return
+                }
+
+                // Si golpea al rival, le reducimos la vida
+                targetState.position -> {
+                    targetState.hp = (targetState.hp - damage).coerceAtLeast(0)
+                    return
+                }
+
+                // Si falla, marcamos la casilla como destruída
+                else -> gridState[hitCell.first][hitCell.second] = false
+            }
+        }
     }
 }
 
@@ -211,9 +321,14 @@ fun processShot(
 fun processMove(
     selectedCell: Pair<Int, Int>,
     playerState: PlayerState,
+    opponentState: PlayerState,
     gridState: Array<Array<Boolean>>
 ): Boolean {
-    // TODO comprobar que el otro jugador no esté en la casilla destino
+    // Comprobamos que la casilla no sea la del oponente
+    if (selectedCell == opponentState.position) {
+        return false
+    }
+
     // Comprobamos que la casilla no esté destruída
     if (!gridState[selectedCell.first][selectedCell.second]) {
         return false
@@ -372,7 +487,6 @@ fun checkGameOver(
         return true
     }
 
-    // TODO
     // Comprobamos si ambos jugadores se han quedado sin munición
     if (player1State.ammo.all { it.value <= 0 } && player2State.ammo.all { it.value <= 0 }) {
         return true

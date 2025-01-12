@@ -55,7 +55,7 @@ fun handleEasyAI(
 
     // Recorremos la lista hasta encontrar una casilla válida para moverse a ella
     for (cell in shuffledAvailableCells) {
-        if (processMove(cell, player2State, gridState)) {
+        if (processMove(cell, player2State, player1State, gridState)) {
             break
         }
     }

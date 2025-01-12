@@ -28,11 +28,14 @@ class MainActivity : ComponentActivity() {
 fun ManageNavigation() {
     // Variable con la pantalla actual
     var currentScreen by remember { mutableStateOf("playerSelectionScreen") }
+    // Variable con el tipo de jugador seleccionado
+    var player by remember { mutableStateOf("User") }
     // Variable con la dificultad seleccionada
     var difficulty by remember { mutableStateOf("Medium") }
 
     when (currentScreen) {
-        "playerSelectionScreen" -> PlayerSelectionScreen(onNextClick = {
+        "playerSelectionScreen" -> PlayerSelectionScreen(onNextClick = { selectedPlayer ->
+            player = selectedPlayer
             currentScreen = "difficultySelectionScreen"
         })
 
@@ -41,7 +44,7 @@ fun ManageNavigation() {
             currentScreen = "gameScreen"
         })
 
-        "gameScreen" -> GameScreen(difficulty = difficulty, onGameOver = {
+        "gameScreen" -> GameScreen(player = player, difficulty = difficulty, onGameOver = {
             currentScreen = "gameOverScreen"
         })
 

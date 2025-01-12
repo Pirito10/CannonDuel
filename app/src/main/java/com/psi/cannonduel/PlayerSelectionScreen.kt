@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 
 // Función para la pantalla de selección de jugador
 @Composable
-fun PlayerSelectionScreen(onNextClick: () -> Unit) {
+fun PlayerSelectionScreen(onNextClick: (selectedPlayer: String) -> Unit) {
     // Variable con el tipo de jugador seleccionado (usuario o IA)
     var selectedPlayer by remember { mutableStateOf("User") } // Selección por defecto: usuario
 
@@ -66,7 +66,7 @@ fun PlayerSelectionScreen(onNextClick: () -> Unit) {
 
         // Botón para saltar a la siguiente pantalla
         Button(
-            onClick = { onNextClick() },
+            onClick = { onNextClick(selectedPlayer) },
             contentPadding = PaddingValues(horizontal = 60.dp, vertical = 10.dp),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
