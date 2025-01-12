@@ -1,6 +1,7 @@
 package com.psi.cannonduel
 
 import androidx.compose.runtime.MutableState
+import java.util.LinkedList
 
 // Función principal para manejar la lógica tras presionar el botón de acción
 fun handleActionButtonClick(
@@ -196,18 +197,19 @@ fun processMove(
     playerState: PlayerState,
     gridState: Array<Array<Boolean>>
 ): Boolean {
-    // Comprobamos si la casilla está disponible o destruída
+    // TODO comprobar que el otro jugador no esté en la casilla destino
+    // Comprobamos que la casilla no esté destruída
     if (!gridState[selectedCell.first][selectedCell.second]) {
         return false
     }
 
-    // Comprobamos si hay un camino válido
-    if (!isPathAvailable(playerState.position, selectedCell, gridState)) {
+    // Calculamos la distancia a la casilla seleccionada
+    val distance = calculatePathDistance(playerState.position, selectedCell, gridState)
+
+    // Comprobamos que haya un camino válido
+    if (distance == null) {
         return false
     }
-
-    // Calculamos la distancia a la casilla seleccionada
-    val distance = calculateDistance(playerState.position, selectedCell)
 
     // Comprobamos si hay suficiente combustible
     if (playerState.fuel < distance) {
@@ -259,14 +261,59 @@ fun calculateHitCell(
     return Pair(row, col)
 }
 
-// Función para calcular la distancia entre dos casillas
-fun calculateDistance(
+// Función para buscar el menor camino entre dos casillas y calcular la distancia
+fun calculatePathDistance(
     start: Pair<Int, Int>,
-    end: Pair<Int, Int>
-): Int {
-    val rowDistance = kotlin.math.abs(end.first - start.first)
-    val colDistance = kotlin.math.abs(end.second - start.second)
-    return rowDistance + colDistance
+    end: Pair<Int, Int>,
+    gridState: Array<Array<Boolean>>
+): Int? {
+    val (startRow, startCol) = start
+    val (endRow, endCol) = end
+
+    // Direcciones de movimiento permitidas (horizontal y vertical)
+    val directions = listOf(
+        Pair(-1, 0), // Arriba
+        Pair(1, 0),  // Abajo
+        Pair(0, -1), // Izquierda
+        Pair(0, 1)   // Derecha
+    )
+
+    // Cola para la búsqueda en anchura (BFS)
+    val queue: LinkedList<Triple<Int, Int, Int>> = LinkedList() // (fila, columna, distancia)
+    queue.add(Triple(startRow, startCol, 0))
+
+    // Conjunto para rastrear casillas visitadas
+    val visited = mutableSetOf<Pair<Int, Int>>()
+    visited.add(start)
+
+    while (queue.isNotEmpty()) {
+        val (currentRow, currentCol, distance) = queue.poll()!!
+
+        // Si alcanzamos la casilla de destino, devolvemos la distancia
+        if (currentRow == endRow && currentCol == endCol) {
+            return distance
+        }
+
+        // Exploramos las casillas adyacentes
+        for ((rowOffset, colOffset) in directions) {
+            val nextRow = currentRow + rowOffset
+            val nextCol = currentCol + colOffset
+
+            // Verificamos si la casilla está dentro del grid y no ha sido visitada
+            if (nextRow in gridState.indices &&
+                nextCol in gridState[0].indices &&
+                gridState[nextRow][nextCol] &&
+                Pair(nextRow, nextCol) !in visited
+            ) {
+                // Agregamos la casilla a la cola y marcamos como visitada
+                queue.add(Triple(nextRow, nextCol, distance + 1))
+                visited.add(Pair(nextRow, nextCol))
+            }
+        }
+    }
+
+    // Si no encontramos un camino, devolvemos null
+    return null
 }
 
 // Función para actualizar el viento
@@ -292,42 +339,6 @@ fun updateWind(
 fun updateInfoMessage(infoMessage: MutableState<String>, message: String) {
     infoMessage.value = message
 }
-
-// Función para comprobar si hay un camino válido entre dos casillas
-fun isPathAvailable(
-    start: Pair<Int, Int>,
-    end: Pair<Int, Int>,
-    gridState: Array<Array<Boolean>>
-): Boolean {
-    val (startRow, startCol) = start
-    val (endRow, endCol) = end
-
-    // Verificamos movimiento horizontal
-    if (startRow == endRow) {
-        val range = if (startCol < endCol) startCol..endCol else endCol..startCol
-        for (col in range) {
-            if (!gridState[startRow][col]) {
-                return false // Casilla destruida en el camino
-            }
-        }
-    }
-    // Verificamos movimiento vertical
-    else if (startCol == endCol) {
-        val range = if (startRow < endRow) startRow..endRow else endRow..startRow
-        for (row in range) {
-            if (!gridState[row][startCol]) {
-                return false // Casilla destruida en el camino
-            }
-        }
-    }
-    // Movimiento diagonal no permitido
-    else {
-        return false
-    }
-
-    return true // Camino válido
-}
-
 
 fun checkGameOver(
     player1State: PlayerState,
