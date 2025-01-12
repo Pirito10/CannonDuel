@@ -33,7 +33,7 @@ const val GRID_SIZE = 10
 
 // Función para la pantalla de juego
 @Composable
-fun GameScreen(onGameOver: () -> Unit) {
+fun GameScreen(difficulty: String, onGameOver: () -> Unit) {
     // Estados de los jugadores
     val player1State =
         remember { mutableStateOf(PlayerState(MAX_HP, MAX_AMMO, MAX_FUEL, Pair(9, 9))) }
@@ -121,6 +121,7 @@ fun GameScreen(onGameOver: () -> Unit) {
                 actionText = actionButtonText.value,
                 onActionClick = {
                     handleActionButtonClick(
+                        difficulty = difficulty,
                         actionText = actionButtonText.value,
                         selectedCell = selectedCell.value,
                         player1State = player1State.value,

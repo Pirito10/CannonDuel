@@ -4,6 +4,7 @@ import androidx.compose.runtime.MutableState
 
 // Función principal para manejar la lógica tras presionar el botón de acción
 fun handleActionButtonClick(
+    difficulty: String,
     actionText: String,
     selectedCell: Pair<Int, Int>?,
     player1State: PlayerState,
@@ -31,11 +32,18 @@ fun handleActionButtonClick(
         )
 
         // Si la acción era moverse...
-        "Move" -> handleMove(selectedCell, gridState, player1State, onInfoUpdate, onActionChange)
+        "Move" -> handleMove(
+            selectedCell,
+            gridState,
+            player1State,
+            onInfoUpdate,
+            onActionChange
+        )
 
         // Si la acción era siguiente turno...
         "Next" -> {
             handleNext(
+                difficulty,
                 player1State,
                 player2State,
                 gridState,
@@ -44,6 +52,7 @@ fun handleActionButtonClick(
                 onActionChange,
                 onGameOver
             )
+            // Actualizamos el viento
             updateWind(windDirection, windStrength)
         }
     }
@@ -105,6 +114,7 @@ fun handleMove(
 
 // Función para gestionar la lógica de siguiente turno
 fun handleNext(
+    difficulty: String,
     player1State: PlayerState,
     player2State: PlayerState,
     gridState: Array<Array<Boolean>>,
@@ -113,37 +123,33 @@ fun handleNext(
     onActionChange: (String) -> Unit,
     onGameOver: () -> Unit
 ) {
-    // Generamos una casilla aleatoria
-    var randomRow = (0..9).random()
-    var randomCol = (0..9).random()
-    var selectedCell = Pair(randomRow, randomCol)
+    when (difficulty) {
+        "Easy" -> handleEasyAI(
+            player1State,
+            player2State,
+            gridState,
+            windDirection,
+            windStrength,
+            onGameOver
+        )
 
-    // Procesamos el disparo
-    processShot(selectedCell, windDirection, windStrength, player1State, player2State, gridState)
-    if (checkGameOver(player1State, player2State)) {
-        onGameOver()
-    }
+        "Medium" -> handleMediumAI(
+            player1State,
+            player2State,
+            gridState,
+            windDirection,
+            windStrength,
+            onGameOver
+        )
 
-    // Intentamos mover a la IA
-    var moved = false
-    val triedCells = mutableSetOf<Pair<Int, Int>>()
-    val totalCells = GRID_SIZE * GRID_SIZE
-    while (!moved && triedCells.size < totalCells) {
-        // Generamos una casilla aleatoria
-        randomRow = (0 until GRID_SIZE).random()
-        randomCol = (0 until GRID_SIZE).random()
-        selectedCell = Pair(randomRow, randomCol)
-
-        // Si la casilla ya fue probada, la ignoramos
-        if (triedCells.contains(selectedCell)) {
-            continue
-        }
-
-        // Marcamos la casilla como probada
-        triedCells.add(selectedCell)
-
-        // Procesamos el movimiento
-        moved = processMove(selectedCell, player2State, gridState)
+        "Hard" -> handleHardAI(
+            player1State,
+            player2State,
+            gridState,
+            windDirection,
+            windStrength,
+            onGameOver
+        )
     }
 
     // Cambiamos el botón de acción

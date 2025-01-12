@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 
 // Función para la pantalla de selección de dificultad
 @Composable
-fun DifficultySelectionScreen(onNextClick: () -> Unit) {
+fun DifficultySelectionScreen(onNextClick: (selectedDifficulty: String) -> Unit) {
     // Variable con la dificultad seleccionada (fácil, medio o difícil)
     var selectedDifficulty by remember { mutableStateOf("Medium") } // Selección por defecto: medio
 
@@ -74,7 +74,7 @@ fun DifficultySelectionScreen(onNextClick: () -> Unit) {
 
         // Botón para saltar a la siguiente pantalla
         Button(
-            onClick = { onNextClick() },
+            onClick = { onNextClick(selectedDifficulty) },
             contentPadding = PaddingValues(horizontal = 60.dp, vertical = 10.dp),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
