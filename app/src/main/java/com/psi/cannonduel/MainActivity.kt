@@ -17,7 +17,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge() // Hace que la aplicación ocupe toda la pantalla (superpuesta a la barra de estado y navegación)
         setContent {
             CannonDuelTheme {
-                AppContent()
+                ManageNavigation()
             }
         }
     }
@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity() {
 
 // Función para gestionar la navegación entre pantallas
 @Composable
-fun AppContent() {
+fun ManageNavigation() {
     // Variable con la pantalla actual
     var currentScreen by remember { mutableStateOf("playerSelectionScreen") }
 
