@@ -9,11 +9,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import com.chaquo.python.Python
+import com.chaquo.python.android.AndroidPlatform
 import com.psi.cannonduel.ui.theme.CannonDuelTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Inicializamos Chaquopy
+        Python.start(AndroidPlatform(this))
+
         enableEdgeToEdge() // Hace que la aplicación ocupe toda la pantalla (superpuesta a la barra de estado y navegación)
         setContent {
             CannonDuelTheme {
