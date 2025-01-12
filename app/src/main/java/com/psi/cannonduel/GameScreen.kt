@@ -127,8 +127,8 @@ fun GameScreen() {
                         player1State = player1State.value,
                         player2State = player2State.value,
                         gridState = gridState.value,
-                        windDirection = windDirection.value,
-                        windStrength = windStrength.intValue,
+                        windDirection = windDirection,
+                        windStrength = windStrength,
                         onInfoUpdate = { message -> updateInfoMessage(infoMessage, message) },
                         onActionChange = { actionButtonText.value = it },
                         onClearSelection = { selectedCell.value = null }
