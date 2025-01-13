@@ -6,7 +6,7 @@ import java.util.LinkedList
 
 // Función para manejar la lógica del botón de acción
 fun handleActionButtonClick(
-    player: String,
+    gamemode: String,
     difficulty: String,
     actionText: String,
     selectedCell: Pair<Int, Int>?,
@@ -18,12 +18,12 @@ fun handleActionButtonClick(
     windStrength: MutableState<Int>,
     knownWindDirection: MutableState<String>,
     knownWindStrength: MutableState<Int>,
+    pythonModule: PyObject,
     onActionChange: (String) -> Unit,
     onClearSelection: () -> Unit,
-    onGameOver: () -> Unit,
-    pythonModule: PyObject
+    onGameOver: () -> Unit
 ) {
-    if (player == "AI vs AI") {
+    if (gamemode == "AI vs AI") {
         while (!checkGameOver(player1State, player2State)) {
             handleNormalAI(
                 player1State,
@@ -90,9 +90,9 @@ fun handleActionButtonClick(
                 gridState,
                 windDirection.value,
                 windStrength.value,
+                pythonModule,
                 onActionChange,
-                onGameOver,
-                pythonModule
+                onGameOver
             )
             // Actualizamos el viento
             updateWind(windDirection, windStrength, knownWindDirection, knownWindStrength)
@@ -107,8 +107,8 @@ fun handleActionButtonClick(
 fun handleShoot(
     selectedCell: Pair<Int, Int>?,
     selectedAmmo: MutableState<String>,
-    player1State: PlayerState,
-    player2State: PlayerState,
+    shooterState: PlayerState,
+    targetState: PlayerState,
     gridState: Array<Array<Boolean>>,
     windDirection: String,
     windStrength: Int,
@@ -131,13 +131,13 @@ fun handleShoot(
         selectedAmmo,
         windDirection,
         windStrength,
-        player1State,
-        player2State,
+        shooterState,
+        targetState,
         gridState
     )
 
     // Comprobamos si se terminó la partida
-    if (checkGameOver(player1State, player2State)) {
+    if (checkGameOver(shooterState, targetState)) {
         onGameOver()
     }
 
@@ -149,8 +149,8 @@ fun handleShoot(
 fun handleMove(
     selectedCell: Pair<Int, Int>?,
     gridState: Array<Array<Boolean>>,
-    player1State: PlayerState,
-    player2State: PlayerState,
+    playerState: PlayerState,
+    enemyState: PlayerState,
     onActionChange: (String) -> Unit
 ) {
     // Comprobamos si se ha seleccionado una casilla
@@ -158,9 +158,8 @@ fun handleMove(
         return
     }
 
-    // Procesamos el movimiento
-    if (!processMove(selectedCell, player1State, player2State, gridState)) {
-        // Si no se pudo realizar el movimiento, no hacemos nada
+    // Procesamos el movimiento y comprobamos que se haya realizado
+    if (!processMove(selectedCell, playerState, enemyState, gridState)) {
         return
     }
 
@@ -171,20 +170,20 @@ fun handleMove(
 // Función para gestionar la lógica de siguiente turno
 fun handleNext(
     difficulty: String,
-    player1State: PlayerState,
-    player2State: PlayerState,
+    playerState: PlayerState,
+    enemyState: PlayerState,
     gridState: Array<Array<Boolean>>,
     windDirection: String,
     windStrength: Int,
+    pythonModule: PyObject,
     onActionChange: (String) -> Unit,
-    onGameOver: () -> Unit,
-    pythonModule: PyObject
+    onGameOver: () -> Unit
 ) {
     // Gestionamos el turno del rival según la dificultad seleccionada
     when (difficulty) {
         "Random" -> handleRandomAI(
-            player1State,
-            player2State,
+            playerState,
+            enemyState,
             gridState,
             windDirection,
             windStrength,
@@ -192,8 +191,8 @@ fun handleNext(
         )
 
         "Normal" -> handleNormalAI(
-            player1State,
-            player2State,
+            playerState,
+            enemyState,
             gridState,
             windDirection,
             windStrength,
@@ -220,13 +219,15 @@ fun processShot(
     val ammoType = selectedAmmo.value
     shooterState.ammo[ammoType] = shooterState.ammo[ammoType]!! - 1
 
+    // Actualizamos la última posición conocida
     shooterState.lastKnownPosition = shooterState.position
 
+    // Gestionamos el disparo según el tipo de munición
     when (ammoType) {
         "Standard" -> {
             val damage = 2
 
-            // Calculamos la casilla golpeada
+            // Calculamos la casilla golpeada en función del viento
             when (val hitCell = calculateHitCell(targetCell, windDirection, windStrength)) {
                 // Si se golpea a sí mismo, le reducimos la vida
                 shooterState.position -> {
@@ -269,9 +270,10 @@ fun processShot(
         "Nuke" -> {
             val damage = 3
 
-            // Calculamos la casilla golpeada
+            // Calculamos la casilla golpeada en función del viento
             val hitCell = calculateHitCell(targetCell, windDirection, windStrength)
 
+            // Eliminamos todas las casillas adyacentes
             for (rowOffset in -1..1) {
                 for (colOffset in -1..1) {
                     val affectedRow = hitCell.first + rowOffset
@@ -280,37 +282,20 @@ fun processShot(
                     if (affectedRow in gridState.indices && affectedCol in gridState[0].indices) {
                         val affectedCell = Pair(affectedRow, affectedCol)
 
-                        // Si el rival está en la casilla afectada, le reducimos la vida
                         when (affectedCell) {
-                            targetState.position -> targetState.hp =
-                                (targetState.hp - damage).coerceAtLeast(0)
-
-                            // Si el propio jugador está en la casilla afectada, se reduce su vida
+                            // Si el propio jugador está en la casilla afectada, le reducimos la vida
                             shooterState.position -> shooterState.hp =
                                 (shooterState.hp - damage).coerceAtLeast(0)
 
-                            // Si no hay jugadores, destruimos la casilla
+                            // Si el rival está en una casilla afectada, le reducimos la vida
+                            targetState.position -> targetState.hp =
+                                (targetState.hp - damage).coerceAtLeast(0)
+
+                            // Si no hay jugadores, destruímos la casilla
                             else -> gridState[affectedRow][affectedCol] = false
                         }
                     }
                 }
-            }
-
-            when (hitCell) {
-                // Si se golpea a sí mismo, le reducimos la vida
-                shooterState.position -> {
-                    shooterState.hp = (shooterState.hp - damage).coerceAtLeast(0)
-                    return
-                }
-
-                // Si golpea al rival, le reducimos la vida
-                targetState.position -> {
-                    targetState.hp = (targetState.hp - damage).coerceAtLeast(0)
-                    return
-                }
-
-                // Si falla, marcamos la casilla como destruída
-                else -> gridState[hitCell.first][hitCell.second] = false
             }
         }
     }
@@ -320,26 +305,17 @@ fun processShot(
 fun processMove(
     selectedCell: Pair<Int, Int>,
     playerState: PlayerState,
-    opponentState: PlayerState,
+    enemyState: PlayerState,
     gridState: Array<Array<Boolean>>
 ): Boolean {
     // Comprobamos que la casilla no sea la del oponente
-    if (selectedCell == opponentState.position) {
+    if (selectedCell == enemyState.position) {
         return false
     }
 
-    // Comprobamos que la casilla no esté destruída
-    if (!gridState[selectedCell.first][selectedCell.second]) {
-        return false
-    }
-
-    // Calculamos la menor distancia a la casilla seleccionada
+    // Calculamos la menor distancia a la casilla seleccionada y comprobamos que exista un camino válido
     val distance = calculatePathDistance(playerState.position, selectedCell, gridState)
-
-    // Comprobamos que exista un camino válido
-    if (distance == null) {
-        return false
-    }
+        ?: return false
 
     // Comprobamos si hay suficiente combustible
     if (playerState.fuel < distance) {

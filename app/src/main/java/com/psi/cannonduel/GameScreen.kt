@@ -136,9 +136,7 @@ fun GameScreen(
             ) { selectedAmmo.value = it }
 
             // Botón de acción
-            ActionButton(
-                actionButtonText.value
-            ) {
+            ActionButton(actionButtonText.value) {
                 handleActionButtonClick(
                     gamemode,
                     difficulty,
@@ -152,10 +150,10 @@ fun GameScreen(
                     windStrength,
                     knownWindDirection,
                     knownWindStrength,
+                    pythonModule,
                     { actionButtonText.value = it },
                     { selectedCell.value = null },
-                    onGameOver,
-                    pythonModule
+                    onGameOver
                 )
             }
         }
