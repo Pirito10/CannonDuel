@@ -77,24 +77,29 @@ fun handleMediumAI(
 
     // Disparo basado en la tabla Q
     if (availableAmmoTypes.isNotEmpty()) {
-        // Generamos las casillas disponibles
-        val availableCells = getAvailableCells(gridState)
+        val targetCellList = pythonModule.callAttr(
+            "choose_shot",
+            pythonModule["q_table_shoot"], // Tabla Q de disparos
+            intArrayOf(
+                player2State.position.first,
+                player2State.position.second
+            ), // Posición actual
+            windDirection, // Dirección del viento
+            windStrength, // Fuerza del viento
+            gridState.map { row ->
+                row.map { if (it) 1 else 0 }.toIntArray()
+            }.toTypedArray() // Lista de casillas disponibles
+        ).toJava(ArrayList::class.java) as ArrayList<Int>
 
-        // Elegir celda usando Q-table
-        val chosenCell = pythonModule.callAttr(
-            "handle_turn",
-            "shoot",
-            windDirection,
-            availableCells
-        ).toJava(Pair::class.java) as Pair<Int, Int>
+        val targetCell = Pair(targetCellList[0], targetCellList[1])
 
         // Elegimos un tipo de munición (por simplicidad, aleatorio entre los disponibles)
         val selectedAmmoType = availableAmmoTypes.random()
 
         // Procesar el disparo
         processShot(
-            chosenCell,
-            selectedAmmo = mutableStateOf(selectedAmmoType),
+            targetCell,
+            mutableStateOf(selectedAmmoType),
             windDirection,
             windStrength,
             player2State,
@@ -102,13 +107,22 @@ fun handleMediumAI(
             gridState
         )
 
-        // Actualizar la tabla Q de disparo
+        // Actualizar la tabla Q de disparos
+        val shotReward = calculateShotReward(targetCell, player1State)
         pythonModule.callAttr(
-            "handle_turn",
-            "update_shoot",
-            windDirection,
-            chosenCell,
-            calculateShotReward(chosenCell, player1State) // Recompensa
+            "update_shoot_q_table",
+            pythonModule["q_table_shoot"], // Tabla Q de disparos
+            intArrayOf(
+                player2State.position.first,
+                player2State.position.second
+            ), // Posición actual
+            windDirection, // Dirección del viento
+            windStrength, // Fuerza del viento
+            intArrayOf(
+                targetCell.first,
+                targetCell.second
+            ), // Posición objetivo
+            shotReward // Recompensa obtenida
         )
     }
 
@@ -120,25 +134,56 @@ fun handleMediumAI(
 
     // Movimiento basado en la tabla Q
     val availableCellsForMove = getAvailableCells(gridState)
-    val chosenMove = pythonModule.callAttr(
-        "handle_turn",
-        "move",
-        availableCellsForMove,
-        player2State.fuel,
-        player2State.position
-    ).toJava(Pair::class.java) as Pair<Int, Int>
 
-    // Procesar el movimiento
-    if (processMove(chosenMove, player2State, player1State, gridState)) {
-        // Actualizar la tabla Q de movimiento
-        pythonModule.callAttr(
-            "handle_turn",
-            "update_move",
-            player2State.position,
-            chosenMove,
-            calculateMoveReward(player2State, player1State) // Recompensa
+    // Filtrar casillas válidas basadas en la distancia
+    var validCells = availableCellsForMove.filter { cell ->
+        val distance = calculatePathDistance(player2State.position, cell, gridState)
+        distance != null && distance <= player2State.fuel
+    }.map {
+        intArrayOf(it.first, it.second)
+    }.toTypedArray()
+
+    // Comprobar si validCells está vacío
+    if (validCells.isEmpty()) {
+        validCells = arrayOf(
+            intArrayOf(player2State.position.first, player2State.position.second)
         )
     }
+
+    // Llamar al script Python para elegir el movimiento
+    val chosenMoveList = pythonModule.callAttr(
+        "choose_move",
+        pythonModule["q_table_move"], // Tabla Q de movimientos
+        intArrayOf(
+            player2State.position.first,
+            player2State.position.second
+        ), // Posición actual
+        player2State.fuel, // Combustible restante
+        validCells // Casillas válidas
+    ).toJava(List::class.java) as ArrayList<Int>
+
+    // Convertir a Pair para Kotlin
+    val chosenMove = Pair(chosenMoveList[0], chosenMoveList[1])
+
+    // Procesar el movimiento
+    processMove(chosenMove, player2State, player1State, gridState)
+
+    // Actualizar la tabla Q de movimientos
+    val moveReward = calculateMoveReward(player2State, player1State)
+    pythonModule.callAttr(
+        "update_move_q_table",
+        pythonModule["q_table_move"], // Tabla Q de disparos
+        intArrayOf(
+            player2State.position.first,
+            player2State.position.second
+        ), // Posición actual
+        player2State.fuel, // Dirección del viento
+        intArrayOf(
+            chosenMove.first,
+            chosenMove.second
+        ), // Posición objetivo
+        moveReward // Recompensa obtenida
+    )
 }
 
 // Función para gestionar la decisiones de la IA nivel difícil

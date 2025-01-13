@@ -17,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.chaquo.python.PyObject
-import com.chaquo.python.Python
 
 // Clase para encapsular el estado de los jugadores
 data class PlayerState(
@@ -37,7 +36,7 @@ const val GRID_SIZE = 10
 
 // Función para la pantalla de juego
 @Composable
-fun GameScreen(player: String, difficulty: String, onGameOver: () -> Unit) {
+fun GameScreen(player: String, difficulty: String, onGameOver: () -> Unit, pythonModule: PyObject) {
     // TODO randomizar posición de inicio
     // Estados de los jugadores
     val player1State =
@@ -85,9 +84,6 @@ fun GameScreen(player: String, difficulty: String, onGameOver: () -> Unit) {
     val actionButtonText = remember { mutableStateOf("Shoot") }
     // Texto de la caja de información
     val infoMessage = remember { mutableStateOf("Choose a target") }
-
-    val python = Python.getInstance()
-    val pythonModule: PyObject = python.getModule("hard")
 
 
     // Contenedor que ocupa toda la pantalla
