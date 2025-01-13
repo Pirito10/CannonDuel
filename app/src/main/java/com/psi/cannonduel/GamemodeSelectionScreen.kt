@@ -4,11 +4,9 @@ import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -47,6 +45,7 @@ fun GamemodeSelectionScreen(onNextClick: (selectedGamemode: String) -> Unit) {
         ) {
             Text(text = "Choose game mode", fontSize = 24.sp)
 
+            // Selectores
             options.forEach { option ->
                 RadioOption(text = option,
                     selected = selectedGamemode == option,
@@ -65,17 +64,5 @@ fun GamemodeSelectionScreen(onNextClick: (selectedGamemode: String) -> Unit) {
         ) {
             Text(text = "Next", fontSize = 30.sp)
         }
-    }
-}
-
-@Composable
-fun RadioOption(
-    text: String,
-    selected: Boolean,
-    onSelect: () -> Unit
-) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        RadioButton(selected = selected, onClick = onSelect)
-        Text(text = text, fontSize = 20.sp)
     }
 }

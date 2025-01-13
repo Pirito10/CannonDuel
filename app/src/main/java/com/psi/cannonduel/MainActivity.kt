@@ -44,7 +44,7 @@ fun ManageNavigation(pythonModule: PyObject) {
     // Estado de la navegación
     var currentScreen by remember { mutableStateOf("gamemodeSelectionScreen") }
     var gamemode by remember { mutableStateOf("User vs AI") }
-    var difficulty by remember { mutableStateOf("Medium") }
+    var difficulty by remember { mutableStateOf("Normal") }
 
     // Mostramos la pantalla correspondiente
     when (currentScreen) {

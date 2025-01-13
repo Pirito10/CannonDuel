@@ -178,3 +178,15 @@ fun ActionButton(actionText: String, onActionClick: () -> Unit) {
         Text(actionText, fontSize = 16.sp)
     }
 }
+
+@Composable
+fun RadioOption(
+    text: String,
+    selected: Boolean,
+    onSelect: () -> Unit
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        RadioButton(selected = selected, onClick = onSelect)
+        Text(text = text, fontSize = 20.sp)
+    }
+}

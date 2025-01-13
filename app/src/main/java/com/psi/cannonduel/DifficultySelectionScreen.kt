@@ -1,14 +1,12 @@
 package com.psi.cannonduel
 
-import androidx.compose.foundation.layout.Arrangement.Absolute.spacedBy
+import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -24,8 +22,8 @@ import androidx.compose.ui.unit.sp
 // Función para la pantalla de selección de dificultad
 @Composable
 fun DifficultySelectionScreen(onNextClick: (selectedDifficulty: String) -> Unit) {
-    // Variable con la dificultad seleccionada (fácil, medio o difícil)
-    var selectedDifficulty by remember { mutableStateOf("Medium") } // Selección por defecto: medio
+    var selectedDifficulty by remember { mutableStateOf("Normal") }
+    val difficulties = listOf("Random", "Normal")
 
     // Contenedor que ocupa toda la pantalla
     Box(
@@ -49,26 +47,13 @@ fun DifficultySelectionScreen(onNextClick: (selectedDifficulty: String) -> Unit)
         ) {
             Text(text = "Select difficulty", fontSize = 24.sp)
 
-            // Contenedor para el selector de "Easy"
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = selectedDifficulty == "Easy",
-                    onClick = { selectedDifficulty = "Easy" })
-                Text(text = "Easy", fontSize = 20.sp)
-            }
-            // Contenedor para el selector de "Medium"
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = selectedDifficulty == "Medium",
-                    onClick = { selectedDifficulty = "Medium" })
-                Text(text = "Medium", fontSize = 20.sp)
-            }
-            // Contenedor para el selector de "Hard"
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = selectedDifficulty == "Hard",
-                    onClick = { selectedDifficulty = "Hard" })
-                Text(text = "Hard", fontSize = 20.sp)
+            // Selectores
+            difficulties.forEach { difficulty ->
+                RadioOption(
+                    text = difficulty,
+                    selected = selectedDifficulty == difficulty,
+                    onSelect = { selectedDifficulty = difficulty }
+                )
             }
         }
 

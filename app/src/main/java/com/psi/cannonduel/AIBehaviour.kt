@@ -3,8 +3,8 @@ package com.psi.cannonduel
 import androidx.compose.runtime.mutableStateOf
 import com.chaquo.python.PyObject
 
-// Función para gestionar la decisiones de la IA nivel fácil
-fun handleEasyAI(
+// Función para gestionar la decisiones de la IA aleatoria
+fun handleRandomAI(
     player1State: PlayerState,
     player2State: PlayerState,
     gridState: Array<Array<Boolean>>,
@@ -62,8 +62,8 @@ fun handleEasyAI(
     }
 }
 
-// Función para gestionar la decisiones de la IA nivel medio
-fun handleMediumAI(
+// Función para gestionar la decisiones de la IA normal
+fun handleNormalAI(
     player1State: PlayerState,
     player2State: PlayerState,
     gridState: Array<Array<Boolean>>,
@@ -184,17 +184,6 @@ fun handleMediumAI(
         ), // Posición objetivo
         moveReward // Recompensa obtenida
     )
-}
-
-// Función para gestionar la decisiones de la IA nivel difícil
-fun handleHardAI(
-    player1State: PlayerState,
-    player2State: PlayerState,
-    gridState: Array<Array<Boolean>>,
-    windDirection: String,
-    windStrength: Int,
-    onGameOver: () -> Unit
-) {
 }
 
 fun calculateShotReward(target: Pair<*, *>, enemyState: PlayerState): Int {

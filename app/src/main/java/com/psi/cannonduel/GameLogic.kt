@@ -26,7 +26,7 @@ fun handleActionButtonClick(
 ) {
     if (player == "AI vs AI") {
         while (!checkGameOver(player1State, player2State)) {
-            handleMediumAI(
+            handleNormalAI(
                 player1State,
                 player2State,
                 gridState,
@@ -40,7 +40,7 @@ fun handleActionButtonClick(
             if (checkGameOver(player1State, player2State)) break
 
             // Turno del jugador 2 (IA)
-            handleMediumAI(
+            handleNormalAI(
                 player2State,
                 player1State, // Intercambiamos el orden de los estados
                 gridState,
@@ -184,7 +184,7 @@ fun handleNext(
 ) {
     // Gestionamos el turno del rival según la dificultad seleccionada
     when (difficulty) {
-        "Easy" -> handleEasyAI(
+        "Random" -> handleRandomAI(
             player1State,
             player2State,
             gridState,
@@ -193,7 +193,7 @@ fun handleNext(
             onGameOver
         )
 
-        "Medium" -> handleMediumAI(
+        "Normal" -> handleNormalAI(
             player1State,
             player2State,
             gridState,
@@ -201,15 +201,6 @@ fun handleNext(
             windStrength,
             onGameOver,
             pythonModule
-        )
-
-        "Hard" -> handleHardAI(
-            player1State,
-            player2State,
-            gridState,
-            windDirection,
-            windStrength,
-            onGameOver
         )
     }
 
@@ -482,8 +473,8 @@ fun updateWind(
     // Máximo valor de intensidad
     val maxStrength = 4
 
-    // Actualizamos la intensidad (entre -1 y 2 unidades)
-    val strengthChange = listOf(-1, 0, 1, 2).random()
+    // Actualizamos la intensidad (entre -1 y 1 unidades)
+    val strengthChange = listOf(-1, 0, 1).random()
     windStrength.value = (windStrength.value + strengthChange).coerceIn(0, maxStrength)
 
     // Actualizamos la dirección (rotando entre -2 y 2 unidades)
