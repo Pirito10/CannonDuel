@@ -29,6 +29,8 @@ fun handleActionButtonClick(
                 player1State,
                 player2State,
                 gridState,
+                windDirection.value,
+                windStrength.value,
                 knownWindDirection.value,
                 knownWindStrength.value,
                 onGameOver,
@@ -43,6 +45,8 @@ fun handleActionButtonClick(
                 player2State,
                 player1State, // Intercambiamos el orden de los estados
                 gridState,
+                windDirection.value,
+                windStrength.value,
                 knownWindDirection.value,
                 knownWindStrength.value,
                 onGameOver,
@@ -90,6 +94,8 @@ fun handleActionButtonClick(
                 gridState,
                 windDirection.value,
                 windStrength.value,
+                knownWindDirection.value,
+                knownWindStrength.value,
                 pythonModule,
                 onActionChange,
                 onGameOver
@@ -175,6 +181,8 @@ fun handleNext(
     gridState: Array<Array<Boolean>>,
     windDirection: String,
     windStrength: Int,
+    knownWindDirection: String,
+    knownWindStrength: Int,
     pythonModule: PyObject,
     onActionChange: (String) -> Unit,
     onGameOver: () -> Unit
@@ -196,6 +204,8 @@ fun handleNext(
             gridState,
             windDirection,
             windStrength,
+            knownWindDirection,
+            knownWindStrength,
             onGameOver,
             pythonModule
         )
@@ -342,25 +352,6 @@ fun calculateHitCell(
         "S" -> row += windStrength
         "E" -> col += windStrength
         "W" -> col -= windStrength
-        "NE" -> {
-            row -= windStrength
-            col += windStrength
-        }
-
-        "NW" -> {
-            row -= windStrength
-            col -= windStrength
-        }
-
-        "SE" -> {
-            row += windStrength
-            col += windStrength
-        }
-
-        "SW" -> {
-            row += windStrength
-            col -= windStrength
-        }
     }
 
     // Nos aseguramos de que la casilla no se salga del grid
@@ -438,7 +429,7 @@ fun updateWind(
 
     // Lista de posibles direcciones y máxima intensidad
     val directions = listOf("N", "E", "S", "W")
-    val maxStrength = 3
+    val maxStrength = 2
 
     // Actualizamos la intensidad (entre -1 y 1 unidades)
     val strengthChange = listOf(-1, 0, 1).random()
