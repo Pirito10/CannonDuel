@@ -1,6 +1,6 @@
 package com.psi.cannonduel
 
-import androidx.compose.foundation.layout.Arrangement.Absolute.spacedBy
+import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -24,8 +24,8 @@ import androidx.compose.ui.unit.sp
 // Función para la pantalla de selección de modo de juego
 @Composable
 fun GamemodeSelectionScreen(onNextClick: (selectedGamemode: String) -> Unit) {
-    // Variable con el modo de juego seleccionado
     var selectedGamemode by remember { mutableStateOf("User vs AI") }
+    val options = listOf("User vs AI", "AI vs AI", "Training")
 
     // Contenedor que ocupa toda la pantalla
     Box(modifier = Modifier.fillMaxSize()) {
@@ -47,27 +47,11 @@ fun GamemodeSelectionScreen(onNextClick: (selectedGamemode: String) -> Unit) {
         ) {
             Text(text = "Choose game mode", fontSize = 24.sp)
 
-            // Contenedor para el selector de "User vs AI"
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = selectedGamemode == "User vs AI",
-                    onClick = { selectedGamemode = "User vs AI" })
-                Text(text = "User vs AI", fontSize = 20.sp)
-            }
-            // Contenedor para el selector de "AI vs AI"
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = selectedGamemode == "AI vs AI",
-                    onClick = { selectedGamemode = "AI vs AI" })
-                Text(text = "AI vs AI", fontSize = 20.sp)
-            }
-
-            // Contenedor para el selector de "Training"
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = selectedGamemode == "Training",
-                    onClick = { selectedGamemode = "Training" })
-                Text(text = "Training", fontSize = 20.sp)
+            options.forEach { option ->
+                RadioOption(text = option,
+                    selected = selectedGamemode == option,
+                    onSelect = { selectedGamemode = option }
+                )
             }
         }
 
@@ -81,5 +65,17 @@ fun GamemodeSelectionScreen(onNextClick: (selectedGamemode: String) -> Unit) {
         ) {
             Text(text = "Next", fontSize = 30.sp)
         }
+    }
+}
+
+@Composable
+fun RadioOption(
+    text: String,
+    selected: Boolean,
+    onSelect: () -> Unit
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        RadioButton(selected = selected, onClick = onSelect)
+        Text(text = text, fontSize = 20.sp)
     }
 }
