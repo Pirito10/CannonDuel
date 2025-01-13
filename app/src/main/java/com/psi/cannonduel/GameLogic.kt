@@ -85,8 +85,8 @@ fun handleActionButtonClick(
         "Next" -> {
             handleNext(
                 difficulty,
-                player1State,
                 player2State,
+                player1State,
                 gridState,
                 windDirection.value,
                 windStrength.value,
@@ -467,16 +467,4 @@ fun checkGameOver(
     }
 
     return false
-}
-
-fun getAvailableCells(gridState: Array<Array<Boolean>>): List<Pair<Int, Int>> {
-    val availableCells = mutableListOf<Pair<Int, Int>>()
-    for (row in gridState.indices) {
-        for (col in gridState[row].indices) {
-            if (gridState[row][col]) {
-                availableCells.add(Pair(row, col))
-            }
-        }
-    }
-    return availableCells
 }

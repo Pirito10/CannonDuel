@@ -5,15 +5,15 @@ import com.chaquo.python.PyObject
 
 // Función para gestionar la decisiones de la IA aleatoria
 fun handleRandomAI(
-    player1State: PlayerState,
-    player2State: PlayerState,
+    playerState: PlayerState,
+    enemyState: PlayerState,
     gridState: Array<Array<Boolean>>,
     windDirection: String,
     windStrength: Int,
     onGameOver: () -> Unit
 ) {
     // Filtramos los tipos de munición disponibles
-    val availableAmmoTypes = player2State.ammo.filter { it.value > 0 }.keys
+    val availableAmmoTypes = playerState.ammo.filter { it.value > 0 }.keys
 
     // Disparamos si nos queda munición
     if (availableAmmoTypes.isNotEmpty()) {
@@ -28,17 +28,17 @@ fun handleRandomAI(
         // Procesamos el disparo
         processShot(
             selectedCell,
-            selectedAmmo = mutableStateOf(selectedAmmoType),
+            mutableStateOf(selectedAmmoType),
             windDirection,
             windStrength,
-            player2State,
-            player1State,
+            playerState,
+            enemyState,
             gridState
         )
     }
 
     // Comprobamos si se terminó la partida
-    if (checkGameOver(player1State, player2State)) {
+    if (checkGameOver(playerState, enemyState)) {
         onGameOver()
     }
 
@@ -56,7 +56,7 @@ fun handleRandomAI(
 
     // Recorremos la lista hasta encontrar una casilla válida para moverse a ella
     for (cell in shuffledAvailableCells) {
-        if (processMove(cell, player2State, player1State, gridState)) {
+        if (processMove(cell, playerState, enemyState, gridState)) {
             break
         }
     }
@@ -131,12 +131,19 @@ fun handleNormalAI(
         onGameOver()
         return
     }
-
-    // Movimiento basado en la tabla Q
-    val availableCellsForMove = getAvailableCells(gridState)
+    
+    // Generamos una lista de casillas disponibles en el grid
+    val availableCells = mutableListOf<Pair<Int, Int>>()
+    for (row in 0 until GRID_SIZE) {
+        for (col in 0 until GRID_SIZE) {
+            if (gridState[row][col]) {
+                availableCells.add(Pair(row, col))
+            }
+        }
+    }
 
     // Filtrar casillas válidas basadas en la distancia
-    var validCells = availableCellsForMove.filter { cell ->
+    var validCells = availableCells.filter { cell ->
         val distance = calculatePathDistance(player2State.position, cell, gridState)
         distance != null && distance <= player2State.fuel
     }.map {
