@@ -4,8 +4,8 @@ import random
 from java.util import ArrayList
 
 # Formas de las tablas Q
-MOVE_Q_SHAPE = (10, 10, 101)  # Para movimiento
-SHOOT_Q_SHAPE = (10, 10, 8, 10)  # Para disparos
+SHOOT_Q_SHAPE = (8, 8, 8, 8, 4, 3, 9, 5, 3, 8, 8, 3)
+MOVE_Q_SHAPE = (10, 10, 101)
 
 # Hiperparámetros
 EPSILON = 0.1  # Tasa de exploración
@@ -20,33 +20,24 @@ q_table_shoot = None
 BASE_DIR = None  # Será inicializado desde Kotlin
 
 
+# Función para establecer el directorio de ficheros de la aplicación
 def set_base_dir(base_dir):
     global BASE_DIR
     BASE_DIR = base_dir
     print(f"[DEBUG] Base directory set to: {BASE_DIR}")
 
 
-# Archivos para guardar las tablas Q
-def get_move_q_file():
-    return os.path.join(BASE_DIR, 'q_table_move.npy')
-
-
+# Función para obtener la tabla Q de disparos
 def get_shoot_q_file():
     return os.path.join(BASE_DIR, 'q_table_shoot.npy')
 
 
-# Inicialización de tablas Q
-def load_or_initialize_q_table(file_path, shape):
-    """Cargar o inicializar una tabla Q."""
-    if os.path.exists(file_path):
-        print(f"[DEBUG] Loading Q-table from {file_path}")
-        return np.load(file_path)
-    else:
-        print(f"[DEBUG] Initializing a new Q-table with shape {shape}")
-        return np.zeros(shape)
+# Función para obtener la tabla Q de movimientos
+def get_move_q_file():
+    return os.path.join(BASE_DIR, 'q_table_move.npy')
 
 
-# Inicializar las tablas Q globales
+# Función para inicializar las tablas Q
 def initialize_q_tables():
     global q_table_move, q_table_shoot
     print("[DEBUG] Initializing Q-tables")
@@ -55,72 +46,126 @@ def initialize_q_tables():
     print("[DEBUG] Q-tables initialized")
 
 
-# Guardar tablas Q
+# Función para cargar o crear las tablas Q
+def load_or_initialize_q_table(file_path, shape):
+    if os.path.exists(file_path):
+        print(f"[DEBUG] Loading Q-table from {file_path}")
+        return np.load(file_path)
+    else:
+        print(f"[DEBUG] Initializing a new Q-table with shape {shape}")
+        return np.zeros(shape)
+
+
+# Función para guardar las tablas Q
 def save_q_table(q_table, file_path):
     """Guardar la tabla Q en un archivo."""
     print(f"[DEBUG] Saving Q-table to {file_path}")
     np.save(file_path, q_table)
 
 
-def choose_shot(q_table, current_position, wind_direction, wind_strength, grid_state):
+# Función para seleccionar qué casilla disparar
+def choose_shot(q_table, current_position, enemy_position, wind_direction, wind_strength,
+                ammo_counts):
     # Convertir la dirección del viento a índices manejables
-    wind_map = {
-        "N": 0, "S": 1, "E": 2, "W": 3,
-        "NE": 4, "NW": 5, "SE": 6, "SW": 7
-    }
+    wind_map = {"N": 0, "S": 1, "E": 2, "W": 3}
     wind_index = wind_map.get(wind_direction, -1)
 
-    # Representar el estado actual
-    state = (current_position[0], current_position[1], wind_index, wind_strength)
+    # Estado actual
+    state = (
+        current_position[0], current_position[1],
+        enemy_position[0], enemy_position[1],
+        wind_index, wind_strength,
+        ammo_counts[0], ammo_counts[1], ammo_counts[2]
+    )
 
     print(f"[DEBUG] Choosing shot for state {state}")
 
+    # Exploración
     if random.random() < EPSILON:
         print(f"[DEBUG] Exploring: Choosing random cell from grid")
-        available_cells = [(i, j) for i, row in enumerate(grid_state) for j, cell in enumerate(row)]
+        available_cells = [(i, j) for i in range(8) for j in range(8)]
+        available_ammo = [0, 1, 2]
         chosen_cell = list(random.choice(available_cells))
+        chosen_ammo = random.choice(available_ammo)
         result = ArrayList()
         result.add(chosen_cell[0])
         result.add(chosen_cell[1])
+        result.add(chosen_ammo)
         return result
 
-    # Evaluar las Q-values
-    q_values = [
-        q_table[i, j, wind_index, wind_strength]
-        for i, row in enumerate(grid_state)
-        for j, cell in enumerate(row)
-    ]
-    print(f"[DEBUG] Exploiting: Q-values for available cells: {q_values}")
-    best_index = np.argmax(q_values)
-    best_cell = list(
-        divmod(best_index, len(grid_state[0])))  # Convertir índice lineal a coordenadas
-    print(f"[DEBUG] Best Q-value: {q_values[best_index]} at {best_cell}")
+    # Explotación
+    print(f"[DEBUG] Exploiting: Evaluating Q-values for actions")
+    best_q_value = -float('inf')
+    best_action = None
+
+    for ammo_type in range(3):  # Tipos de munición
+        if ammo_counts[ammo_type] > 0:  # Solo considerar munición disponible
+            for i in range(8):
+                for j in range(8):
+                    # Calcular el Q-value para el estado y acción actual
+                    action = (i, j, ammo_type)
+                    full_state_action = state + action
+                    q_value = q_table[full_state_action]
+
+                    if q_value > best_q_value:
+                        best_q_value = q_value
+                        best_action = action
+
+    print(f"[DEBUG] Best action: {best_action} with Q-value: {best_q_value}")
     result = ArrayList()
-    result.add(int(best_cell[0]))
-    result.add(int(best_cell[1]))
+    result.add(best_action[0])
+    result.add(best_action[1])
+    result.add(best_action[2])
     return result
 
 
-def update_shoot_q_table(q_table, current_position, wind_direction, wind_strength, target_position,
-                         reward):
+# Función para actualizar la tabla Q de disparos
+def update_shoot_q_table(q_table, current_position, enemy_position, wind_direction, wind_strength,
+                         ammo_counts, target_position, ammo_type, reward):
     print(f"[DEBUG] Updating shoot Q-table")
     # Convertir la dirección del viento a índices manejables
-    wind_map = {
-        "N": 0, "S": 1, "E": 2, "W": 3,
-        "NE": 4, "NW": 5, "SE": 6, "SW": 7
-    }
+    wind_map = {"N": 0, "S": 1, "E": 2, "W": 3}
     wind_index = wind_map.get(wind_direction, -1)
 
     # Estado actual y próximo
-    state = (current_position[0], current_position[1], wind_index, wind_strength)
-    next_state = (target_position[0], target_position[1])
+    state = (
+        current_position[0], current_position[1],
+        enemy_position[0], enemy_position[1],
+        wind_index, wind_strength,
+        ammo_counts[0], ammo_counts[1], ammo_counts[2]
+    )
+
+    # Acción actual (posición objetivo y tipo de munición)
+    action = (target_position[0], target_position[1], ammo_type)
+
+    # Estado y acción combinados para acceder a la tabla Q de 12 dimensiones
+    full_state_action = state + action
+
+    # Determinar el estado siguiente
+    next_ammo_counts = list(ammo_counts)
+    next_ammo_counts[ammo_type] = max(0,
+                                      next_ammo_counts[ammo_type] - 1)  # Reducir la munición usada
+    next_state = (
+        target_position[0], target_position[1],
+        enemy_position[0], enemy_position[1],
+        wind_index, wind_strength,
+        next_ammo_counts[0], next_ammo_counts[1], next_ammo_counts[2]
+    )
+
+    # Encontrar el mejor Q-value para el estado siguiente
+    best_next_q = -float("inf")
+    for next_ammo_type in range(3):
+        for i in range(8):
+            for j in range(8):
+                next_full_state_action = next_state + (i, j, next_ammo_type)
+                best_next_q = max(best_next_q, q_table[next_full_state_action])
 
     # Q-learning update
-    old_q = q_table[state]
-    best_next_q = np.max(q_table[next_state])
-    q_table[state] += ALPHA * (reward + GAMMA * best_next_q - old_q)
+    old_q = q_table[full_state_action]
+    q_table[full_state_action] += ALPHA * (reward + GAMMA * best_next_q - old_q)
 
-    print(f"[DEBUG] Updated Q-value for state {state}: {old_q} -> {q_table[state]}")
+    print(
+        f"[DEBUG] Updated Q-value for state-action {full_state_action}: {old_q} -> {q_table[full_state_action]}")
 
     # Guardar la tabla Q actualizada
     save_q_table(q_table, get_shoot_q_file())

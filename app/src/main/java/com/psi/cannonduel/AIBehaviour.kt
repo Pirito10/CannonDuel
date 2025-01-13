@@ -69,60 +69,73 @@ fun handleNormalAI(
     gridState: Array<Array<Boolean>>,
     windDirection: String,
     windStrength: Int,
+    knownWindDirection: String,
+    knownWindStrength: Int,
     onGameOver: () -> Unit,
     pythonModule: PyObject
 ) {
     // Obtener los tipos de munición disponibles
     val availableAmmoTypes = playerState.ammo.filter { it.value > 0 }.keys
 
-    // Disparo basado en la tabla Q
+    // Si hay munición, usamos Q-Learning para disparar
     if (availableAmmoTypes.isNotEmpty()) {
-        val targetCellList = pythonModule.callAttr(
+        // Obtenemos la casilla y el tipo de munición
+        val result = pythonModule.callAttr(
             "choose_shot",
-            pythonModule["q_table_shoot"], // Tabla Q de disparos
+            pythonModule["q_table_shoot"],
+            intArrayOf(playerState.position.first, playerState.position.second),
             intArrayOf(
-                playerState.position.first,
-                playerState.position.second
-            ), // Posición actual
-            windDirection, // Dirección del viento
-            windStrength, // Fuerza del viento
-            gridState.map { row ->
-                row.map { if (it) 1 else 0 }.toIntArray()
-            }.toTypedArray() // Lista de casillas disponibles
+                enemyState.lastKnownPosition?.first ?: 0,
+                enemyState.lastKnownPosition?.second ?: 0
+            ),
+            knownWindDirection,
+            knownWindStrength,
+            intArrayOf(
+                playerState.ammo["Standard"] ?: 0,
+                playerState.ammo["Precision"] ?: 0,
+                playerState.ammo["Nuke"] ?: 0
+            )
         ).toJava(ArrayList::class.java) as ArrayList<Int>
 
-        val targetCell = Pair(targetCellList[0], targetCellList[1])
+        val targetCell = Pair(result[0], result[1])
+        val ammoType = when (result[2].toInt()) {
+            0 -> "Standard"
+            1 -> "Precision"
+            2 -> "Nuke"
+            else -> error("Invalid ammo type")
+        }
 
-        // Elegimos un tipo de munición (por simplicidad, aleatorio entre los disponibles)
-        val selectedAmmoType = availableAmmoTypes.random()
+        // Actualizamos la tabla Q de disparos
+        val shotReward = calculateShotReward(targetCell, enemyState)
+        pythonModule.callAttr(
+            "update_shoot_q_table",
+            pythonModule["q_table_shoot"],
+            intArrayOf(playerState.position.first, playerState.position.second),
+            intArrayOf(
+                enemyState.lastKnownPosition?.first ?: 0,
+                enemyState.lastKnownPosition?.second ?: 0
+            ),
+            knownWindDirection,
+            knownWindStrength,
+            intArrayOf(
+                playerState.ammo["Standard"] ?: 0,
+                playerState.ammo["Precision"] ?: 0,
+                playerState.ammo["Nuke"] ?: 0
+            ),
+            intArrayOf(targetCell.first, targetCell.second),
+            result[2],
+            shotReward
+        )
 
-        // Procesar el disparo
+        // Procesamos el disparo
         processShot(
             targetCell,
-            mutableStateOf(selectedAmmoType),
+            mutableStateOf(ammoType),
             windDirection,
             windStrength,
             playerState,
             enemyState,
             gridState
-        )
-
-        // Actualizar la tabla Q de disparos
-        val shotReward = calculateShotReward(targetCell, enemyState)
-        pythonModule.callAttr(
-            "update_shoot_q_table",
-            pythonModule["q_table_shoot"], // Tabla Q de disparos
-            intArrayOf(
-                playerState.position.first,
-                playerState.position.second
-            ), // Posición actual
-            windDirection, // Dirección del viento
-            windStrength, // Fuerza del viento
-            intArrayOf(
-                targetCell.first,
-                targetCell.second
-            ), // Posición objetivo
-            shotReward // Recompensa obtenida
         )
     }
 
