@@ -25,7 +25,7 @@ const val MAX_STANDARD_AMMO = 10
 const val MAX_PRECISION_AMMO = 5
 const val MAX_NUKE_AMMO = 2
 const val MAX_FUEL = 100
-const val GRID_SIZE = 10
+const val GRID_SIZE = 9
 
 // Clase para encapsular el estado de los jugadores
 data class PlayerState(
@@ -62,7 +62,7 @@ fun GameScreen(
     onGameOver: () -> Unit
 ) {
     // Estados de los jugadores
-    val player1State = remember { mutableStateOf(createPlayerState(9)) }
+    val player1State = remember { mutableStateOf(createPlayerState(8)) }
     val player2State = remember { mutableStateOf(createPlayerState(0)) }
     // Estado del viento
     val windDirection = remember { mutableStateOf("N") }

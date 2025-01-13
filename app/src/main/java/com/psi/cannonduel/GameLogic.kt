@@ -437,16 +437,16 @@ fun updateWind(
     knownWindStrength.value = windStrength.value
 
     // Lista de posibles direcciones y máxima intensidad
-    val directions = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
-    val maxStrength = 4
+    val directions = listOf("N", "E", "S", "W")
+    val maxStrength = 3
 
     // Actualizamos la intensidad (entre -1 y 1 unidades)
     val strengthChange = listOf(-1, 0, 1).random()
     windStrength.value = (windStrength.value + strengthChange).coerceIn(0, maxStrength)
 
-    // Actualizamos la dirección (rotando entre -2 y 2 unidades)
+    // Actualizamos la dirección (rotando entre -1 y 1 unidades)
     val currentIndex = directions.indexOf(windDirection.value)
-    val directionChange = listOf(-2, -1, 0, 1, 2).random()
+    val directionChange = listOf(-1, 0, 1).random()
     val newIndex = (currentIndex + directionChange + directions.size) % directions.size
     windDirection.value = directions[newIndex]
 }
