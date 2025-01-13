@@ -17,14 +17,22 @@ import com.psi.cannonduel.ui.theme.CannonDuelTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Inicializamos Chaquopy
-        Python.start(AndroidPlatform(this))
-        val filesDir = applicationContext.filesDir.absolutePath
 
-        enableEdgeToEdge() // Hace que la aplicación ocupe toda la pantalla (superpuesta a la barra de estado y navegación)
+        // Inicializamos Python y obtenemos el script con el modelo para la IA
+        Python.start(AndroidPlatform(this))
+        val python = Python.getInstance()
+        val pythonModule: PyObject = python.getModule("AI")
+        // Obtenemos el directorio de ficheros de la aplicación y inicializamos el script
+        val filesDir = applicationContext.filesDir.absolutePath
+        pythonModule.callAttr("set_base_dir", filesDir)
+        pythonModule.callAttr("initialize_q_tables")
+
+        // Hacemos que la aplicación ocupe toda la pantalla (superpuesta a la barra de estado y navegación)
+        enableEdgeToEdge()
         setContent {
             CannonDuelTheme {
-                ManageNavigation(filesDir)
+                // Mostramos la pantalla de inicio
+                ManageNavigation(pythonModule)
             }
         }
     }
@@ -32,37 +40,34 @@ class MainActivity : ComponentActivity() {
 
 // Función para gestionar la navegación entre pantallas
 @Composable
-fun ManageNavigation(filesDir: String) {
-    // Variable con la pantalla actual
-    var currentScreen by remember { mutableStateOf("playerSelectionScreen") }
-    // Variable con el tipo de jugador seleccionado
-    var player by remember { mutableStateOf("User") }
-    // Variable con la dificultad seleccionada
+fun ManageNavigation(pythonModule: PyObject) {
+    // Estado de la navegación
+    var currentScreen by remember { mutableStateOf("gamemodeSelectionScreen") }
+    var gamemode by remember { mutableStateOf("User vs AI") }
     var difficulty by remember { mutableStateOf("Medium") }
 
+    // Mostramos la pantalla correspondiente
     when (currentScreen) {
-        "playerSelectionScreen" -> PlayerSelectionScreen(onNextClick = { selectedPlayer ->
-            player = selectedPlayer
+        "gamemodeSelectionScreen" -> GamemodeSelectionScreen { selectedGamemode ->
+            gamemode = selectedGamemode
             currentScreen = "difficultySelectionScreen"
-        })
-
-        "difficultySelectionScreen" -> DifficultySelectionScreen(onNextClick = { selectedDifficulty ->
-            difficulty = selectedDifficulty
-            currentScreen = "gameScreen"
-        })
-
-        "gameScreen" -> {
-            val python = Python.getInstance()
-            val pythonModule: PyObject = python.getModule("hard")
-
-            // Pasar el directorio base al script Python
-            pythonModule.callAttr("set_base_dir", filesDir)
-
-            pythonModule.callAttr("initialize_q_tables")
-            GameScreen(player = player, difficulty = difficulty, onGameOver = {
-                currentScreen = "gameOverScreen"
-            }, pythonModule = pythonModule)
         }
+
+        "difficultySelectionScreen" -> DifficultySelectionScreen { selectedDifficulty ->
+            difficulty = selectedDifficulty
+            currentScreen = if (gamemode == "User vs AI" || gamemode == "AI vs AI") {
+                "gameScreen"
+            } else {
+                "trainingScreen"
+            }
+        }
+
+        "gameScreen" -> GameScreen(gamemode, difficulty, pythonModule) {
+            currentScreen = "gameOverScreen"
+        }
+
+        // TODO implementar más tarde
+        //"trainingScreen" -> TrainingScreen()
 
         "gameOverScreen" -> GameOverScreen()
     }

@@ -37,7 +37,7 @@ const val GRID_SIZE = 10
 
 // Función para la pantalla de juego
 @Composable
-fun GameScreen(player: String, difficulty: String, onGameOver: () -> Unit, pythonModule: PyObject) {
+fun GameScreen(player: String, difficulty: String, pythonModule: PyObject, onGameOver: () -> Unit) {
     // TODO randomizar posición de inicio
     // Estados de los jugadores
     val player1State =
@@ -87,7 +87,6 @@ fun GameScreen(player: String, difficulty: String, onGameOver: () -> Unit, pytho
     val actionButtonText = remember { mutableStateOf("Shoot") }
     // Texto de la caja de información
     val infoMessage = remember { mutableStateOf("Choose a target") }
-
 
     // Contenedor que ocupa toda la pantalla
     Box(modifier = Modifier.fillMaxSize()) {

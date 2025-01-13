@@ -21,15 +21,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// Función para la pantalla de selección de jugador
+// Función para la pantalla de selección de modo de juego
 @Composable
-fun PlayerSelectionScreen(onNextClick: (selectedPlayer: String) -> Unit) {
-    // Variable con el tipo de jugador seleccionado (usuario o IA)
-    var selectedPlayer by remember { mutableStateOf("User") } // Selección por defecto: usuario
+fun GamemodeSelectionScreen(onNextClick: (selectedGamemode: String) -> Unit) {
+    // Variable con el modo de juego seleccionado
+    var selectedGamemode by remember { mutableStateOf("User vs AI") }
 
     // Contenedor que ocupa toda la pantalla
     Box(modifier = Modifier.fillMaxSize()) {
-        // Título en la parte superior
+        // Título de la aplicación
         Text(
             text = "Cannon Duel",
             fontSize = 60.sp,
@@ -39,34 +39,41 @@ fun PlayerSelectionScreen(onNextClick: (selectedPlayer: String) -> Unit) {
                 .padding(top = 80.dp)
         )
 
-        // Contenedor para el selector de jugador
+        // Contenedor para el selector de modo de juego
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = spacedBy(16.dp),
             modifier = Modifier.align(Alignment.Center)
         ) {
+            Text(text = "Choose game mode", fontSize = 24.sp)
 
-            Text(text = "Choose who will play", fontSize = 24.sp)
-
-            // Contenedor para el selector de "User"
+            // Contenedor para el selector de "User vs AI"
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(
-                    selected = selectedPlayer == "User",
-                    onClick = { selectedPlayer = "User" })
-                Text(text = "User", fontSize = 20.sp)
+                    selected = selectedGamemode == "User vs AI",
+                    onClick = { selectedGamemode = "User vs AI" })
+                Text(text = "User vs AI", fontSize = 20.sp)
             }
-            // Contenedor para el selector de "AI"
+            // Contenedor para el selector de "AI vs AI"
             Row(verticalAlignment = Alignment.CenterVertically) {
                 RadioButton(
-                    selected = selectedPlayer == "AI",
-                    onClick = { selectedPlayer = "AI" })
-                Text(text = "AI", fontSize = 20.sp)
+                    selected = selectedGamemode == "AI vs AI",
+                    onClick = { selectedGamemode = "AI vs AI" })
+                Text(text = "AI vs AI", fontSize = 20.sp)
+            }
+
+            // Contenedor para el selector de "Training"
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(
+                    selected = selectedGamemode == "Training",
+                    onClick = { selectedGamemode = "Training" })
+                Text(text = "Training", fontSize = 20.sp)
             }
         }
 
         // Botón para saltar a la siguiente pantalla
         Button(
-            onClick = { onNextClick(selectedPlayer) },
+            onClick = { onNextClick(selectedGamemode) },
             contentPadding = PaddingValues(horizontal = 60.dp, vertical = 10.dp),
             modifier = Modifier
                 .align(Alignment.BottomCenter)

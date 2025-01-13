@@ -24,7 +24,7 @@ fun handleActionButtonClick(
     onGameOver: () -> Unit,
     pythonModule: PyObject
 ) {
-    if (player == "AI") {
+    if (player == "AI vs AI") {
         while (!checkGameOver(player1State, player2State)) {
             handleMediumAI(
                 player1State,
