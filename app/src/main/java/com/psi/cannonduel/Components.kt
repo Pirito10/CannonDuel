@@ -82,7 +82,6 @@ fun GameGrid(
                     // Color de la celda
                     val cellColor = when {
                         player1Position == Pair(rowIndex, colIndex) -> Color.Blue // Jugador
-                        // TODO no mostrar ubicación real
                         player2Position == Pair(rowIndex, colIndex) -> Color.Red // IA
                         selectedCell == Pair(
                             rowIndex,

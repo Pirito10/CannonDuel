@@ -231,6 +231,8 @@ fun processShot(
     val ammoType = selectedAmmo.value
     shooterState.ammo[ammoType] = shooterState.ammo[ammoType]!! - 1
 
+    shooterState.lastKnownPosition = shooterState.position
+
     when (ammoType) {
         "Standard" -> {
             val damage = 2
@@ -465,7 +467,6 @@ fun updateInfoMessage(infoMessage: MutableState<String>, message: String) {
     infoMessage.value = message
 }
 
-// TODO mostrar viento de la ronda anterior
 // Función para actualizar el viento
 fun updateWind(
     windDirection: MutableState<String>,

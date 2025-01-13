@@ -23,7 +23,8 @@ data class PlayerState(
     var hp: Int,
     var ammo: MutableMap<String, Int>,
     var fuel: Int,
-    var position: Pair<Int, Int>
+    var position: Pair<Int, Int>,
+    var lastKnownPosition: Pair<Int, Int>? = null
 )
 
 // Constantes con valores por defecto
@@ -119,7 +120,7 @@ fun GameScreen(player: String, difficulty: String, onGameOver: () -> Unit, pytho
                 gridSize = GRID_SIZE,
                 gridState = gridState.value,
                 player1Position = player1State.value.position,
-                player2Position = player2State.value.position,
+                player2Position = player2State.value.lastKnownPosition ?: Pair(-1, -1),
                 selectedCell = selectedCell.value,
                 onCellClick = { selectedCell.value = it }
             )
