@@ -18,7 +18,6 @@ fun handleActionButtonClick(
     windStrength: MutableState<Int>,
     knownWindDirection: MutableState<String>,
     knownWindStrength: MutableState<Int>,
-    onInfoUpdate: (String) -> Unit,
     onActionChange: (String) -> Unit,
     onClearSelection: () -> Unit,
     onGameOver: () -> Unit,
@@ -69,7 +68,6 @@ fun handleActionButtonClick(
             gridState,
             windDirection.value,
             windStrength.value,
-            onInfoUpdate,
             onActionChange,
             onGameOver
         )
@@ -80,7 +78,6 @@ fun handleActionButtonClick(
             gridState,
             player1State,
             player2State,
-            onInfoUpdate,
             onActionChange
         )
 
@@ -115,13 +112,11 @@ fun handleShoot(
     gridState: Array<Array<Boolean>>,
     windDirection: String,
     windStrength: Int,
-    onInfoUpdate: (String) -> Unit,
     onActionChange: (String) -> Unit,
     onGameOver: () -> Unit
 ) {
     // Comprobamos si se ha seleccionado una casilla
     if (selectedCell == null) {
-        onInfoUpdate("No cell selected")
         return
     }
 
@@ -151,12 +146,10 @@ fun handleMove(
     gridState: Array<Array<Boolean>>,
     player1State: PlayerState,
     player2State: PlayerState,
-    onInfoUpdate: (String) -> Unit,
     onActionChange: (String) -> Unit
 ) {
     // Comprobamos si se ha seleccionado una casilla
     if (selectedCell == null) {
-        onInfoUpdate("No cell selected")
         return
     }
 
