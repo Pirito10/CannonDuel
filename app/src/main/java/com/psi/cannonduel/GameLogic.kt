@@ -120,6 +120,11 @@ fun handleShoot(
         return
     }
 
+    // Comprobamos si se ha seleccionado una munición
+    if (selectedAmmo.value.isEmpty()) {
+        return
+    }
+
     // Procesamos el disparo
     processShot(
         selectedCell,
@@ -222,9 +227,7 @@ fun processShot(
             val damage = 2
 
             // Calculamos la casilla golpeada
-            val hitCell = calculateHitCell(targetCell, windDirection, windStrength)
-
-            when (hitCell) {
+            when (val hitCell = calculateHitCell(targetCell, windDirection, windStrength)) {
                 // Si se golpea a sí mismo, le reducimos la vida
                 shooterState.position -> {
                     shooterState.hp = (shooterState.hp - damage).coerceAtLeast(0)
@@ -278,16 +281,16 @@ fun processShot(
                         val affectedCell = Pair(affectedRow, affectedCol)
 
                         // Si el rival está en la casilla afectada, le reducimos la vida
-                        if (affectedCell == targetState.position) {
-                            targetState.hp = (targetState.hp - damage).coerceAtLeast(0)
-                        }
-                        // Si el propio jugador está en la casilla afectada, se reduce su vida
-                        else if (affectedCell == shooterState.position) {
-                            shooterState.hp = (shooterState.hp - damage).coerceAtLeast(0)
-                        }
-                        // Si no hay jugadores, destruimos la casilla
-                        else {
-                            gridState[affectedRow][affectedCol] = false
+                        when (affectedCell) {
+                            targetState.position -> targetState.hp =
+                                (targetState.hp - damage).coerceAtLeast(0)
+
+                            // Si el propio jugador está en la casilla afectada, se reduce su vida
+                            shooterState.position -> shooterState.hp =
+                                (shooterState.hp - damage).coerceAtLeast(0)
+
+                            // Si no hay jugadores, destruimos la casilla
+                            else -> gridState[affectedRow][affectedCol] = false
                         }
                     }
                 }
@@ -444,11 +447,6 @@ fun calculatePathDistance(
 
     // Si no encontramos un camino, devolvemos null
     return null
-}
-
-// Función para actualizar el texto de la caja de información
-fun updateInfoMessage(infoMessage: MutableState<String>, message: String) {
-    infoMessage.value = message
 }
 
 // Función para actualizar el viento

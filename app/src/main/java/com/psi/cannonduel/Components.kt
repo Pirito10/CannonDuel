@@ -147,20 +147,18 @@ fun AmmoSelector(
     ammoCounts: Map<String, Int>,
     onAmmoChange: (String) -> Unit
 ) {
+    // Si no queda munición del tipo seleccionado, deseleccionamos el selector
+    if (ammoCounts[selectedAmmo] == 0) {
+        onAmmoChange("")
+    }
+
     Column {
         ammoCounts.forEach { (ammo, count) ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = (selectedAmmo == ammo),
-                    onClick = {
-                        if (count > 0) {
-                            onAmmoChange(ammo)
-                        }
-                    },
-                    enabled = count > 0
-                )
-                Text(text = "$ammo: $count", fontSize = 14.sp)
-            }
+            RadioOption(
+                "$ammo: $count",
+                (selectedAmmo == ammo),
+                count > 0
+            ) { if (count > 0) onAmmoChange(ammo) }
         }
     }
 }
@@ -179,14 +177,16 @@ fun ActionButton(actionText: String, onActionClick: () -> Unit) {
     }
 }
 
+// Elemento para selectores
 @Composable
 fun RadioOption(
     text: String,
     selected: Boolean,
+    enabled: Boolean = true,
     onSelect: () -> Unit
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        RadioButton(selected = selected, onClick = onSelect)
+        RadioButton(selected = selected, onClick = onSelect, enabled = enabled)
         Text(text = text, fontSize = 20.sp)
     }
 }
