@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.chaquo.python.PyObject
+import kotlin.random.Random
 
 // Constantes con valores por defecto
 const val MAX_HP = 5
@@ -36,17 +37,21 @@ data class PlayerState(
 )
 
 // Función para crear el estado de un jugador
-fun createPlayerState(startPosition: Pair<Int, Int>) = PlayerState(
-    // TODO randomizar posición de inicio
-    MAX_HP,
-    mutableMapOf(
-        "Standard" to MAX_STANDARD_AMMO,
-        "Precision" to MAX_PRECISION_AMMO,
-        "Nuke" to MAX_NUKE_AMMO
-    ),
-    MAX_FUEL,
-    startPosition
-)
+fun createPlayerState(row: Int): PlayerState {
+    // Generamos la casilla inicial aleatoriamente
+    val startingCell = Pair(row, Random.nextInt(GRID_SIZE))
+
+    return PlayerState(
+        MAX_HP,
+        mutableMapOf(
+            "Standard" to MAX_STANDARD_AMMO,
+            "Precision" to MAX_PRECISION_AMMO,
+            "Nuke" to MAX_NUKE_AMMO
+        ),
+        MAX_FUEL,
+        startingCell
+    )
+}
 
 // Función para la pantalla de juego
 @Composable
@@ -57,8 +62,8 @@ fun GameScreen(
     onGameOver: () -> Unit
 ) {
     // Estados de los jugadores
-    val player1State = remember { mutableStateOf(createPlayerState(Pair(9, 9))) }
-    val player2State = remember { mutableStateOf(createPlayerState(Pair(0, 0))) }
+    val player1State = remember { mutableStateOf(createPlayerState(9)) }
+    val player2State = remember { mutableStateOf(createPlayerState(0)) }
     // Estado del viento
     val windDirection = remember { mutableStateOf("N") }
     val windStrength = remember { mutableIntStateOf(0) }

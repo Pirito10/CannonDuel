@@ -432,12 +432,12 @@ fun updateWind(
     knownWindDirection: MutableState<String>,
     knownWindStrength: MutableState<Int>
 ) {
+    // Actualizamos la última información del viento conocida
     knownWindDirection.value = windDirection.value
     knownWindStrength.value = windStrength.value
 
-    // Lista de posibles direcciones
+    // Lista de posibles direcciones y máxima intensidad
     val directions = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
-    // Máximo valor de intensidad
     val maxStrength = 4
 
     // Actualizamos la intensidad (entre -1 y 1 unidades)
