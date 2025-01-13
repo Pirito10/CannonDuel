@@ -64,8 +64,8 @@ fun handleRandomAI(
 
 // Función para gestionar la decisiones de la IA normal
 fun handleNormalAI(
-    player1State: PlayerState,
-    player2State: PlayerState,
+    playerState: PlayerState,
+    enemyState: PlayerState,
     gridState: Array<Array<Boolean>>,
     windDirection: String,
     windStrength: Int,
@@ -73,7 +73,7 @@ fun handleNormalAI(
     pythonModule: PyObject
 ) {
     // Obtener los tipos de munición disponibles
-    val availableAmmoTypes = player2State.ammo.filter { it.value > 0 }.keys
+    val availableAmmoTypes = playerState.ammo.filter { it.value > 0 }.keys
 
     // Disparo basado en la tabla Q
     if (availableAmmoTypes.isNotEmpty()) {
@@ -81,8 +81,8 @@ fun handleNormalAI(
             "choose_shot",
             pythonModule["q_table_shoot"], // Tabla Q de disparos
             intArrayOf(
-                player2State.position.first,
-                player2State.position.second
+                playerState.position.first,
+                playerState.position.second
             ), // Posición actual
             windDirection, // Dirección del viento
             windStrength, // Fuerza del viento
@@ -102,19 +102,19 @@ fun handleNormalAI(
             mutableStateOf(selectedAmmoType),
             windDirection,
             windStrength,
-            player2State,
-            player1State,
+            playerState,
+            enemyState,
             gridState
         )
 
         // Actualizar la tabla Q de disparos
-        val shotReward = calculateShotReward(targetCell, player1State)
+        val shotReward = calculateShotReward(targetCell, enemyState)
         pythonModule.callAttr(
             "update_shoot_q_table",
             pythonModule["q_table_shoot"], // Tabla Q de disparos
             intArrayOf(
-                player2State.position.first,
-                player2State.position.second
+                playerState.position.first,
+                playerState.position.second
             ), // Posición actual
             windDirection, // Dirección del viento
             windStrength, // Fuerza del viento
@@ -127,11 +127,11 @@ fun handleNormalAI(
     }
 
     // Comprobar si terminó la partida
-    if (checkGameOver(player1State, player2State)) {
+    if (checkGameOver(playerState, enemyState)) {
         onGameOver()
         return
     }
-    
+
     // Generamos una lista de casillas disponibles en el grid
     val availableCells = mutableListOf<Pair<Int, Int>>()
     for (row in 0 until GRID_SIZE) {
@@ -143,29 +143,21 @@ fun handleNormalAI(
     }
 
     // Filtrar casillas válidas basadas en la distancia
-    var validCells = availableCells.filter { cell ->
-        val distance = calculatePathDistance(player2State.position, cell, gridState)
-        distance != null && distance <= player2State.fuel
-    }.map {
-        intArrayOf(it.first, it.second)
-    }.toTypedArray()
-
-    // Comprobar si validCells está vacío
-    if (validCells.isEmpty()) {
-        validCells = arrayOf(
-            intArrayOf(player2State.position.first, player2State.position.second)
-        )
-    }
+    val validCells = availableCells.filter { cell ->
+        val distance = calculatePathDistance(playerState.position, cell, gridState)
+        distance != null && distance <= playerState.fuel
+    }.map { intArrayOf(it.first, it.second) }.toTypedArray()
+        .ifEmpty { arrayOf(intArrayOf(playerState.position.first, playerState.position.second)) }
 
     // Llamar al script Python para elegir el movimiento
     val chosenMoveList = pythonModule.callAttr(
         "choose_move",
         pythonModule["q_table_move"], // Tabla Q de movimientos
         intArrayOf(
-            player2State.position.first,
-            player2State.position.second
+            playerState.position.first,
+            playerState.position.second
         ), // Posición actual
-        player2State.fuel, // Combustible restante
+        playerState.fuel, // Combustible restante
         validCells // Casillas válidas
     ).toJava(List::class.java) as ArrayList<Int>
 
@@ -173,18 +165,18 @@ fun handleNormalAI(
     val chosenMove = Pair(chosenMoveList[0], chosenMoveList[1])
 
     // Procesar el movimiento
-    processMove(chosenMove, player2State, player1State, gridState)
+    processMove(chosenMove, playerState, enemyState, gridState)
 
     // Actualizar la tabla Q de movimientos
-    val moveReward = calculateMoveReward(player2State, player1State)
+    val moveReward = calculateMoveReward(playerState, enemyState)
     pythonModule.callAttr(
         "update_move_q_table",
         pythonModule["q_table_move"], // Tabla Q de disparos
         intArrayOf(
-            player2State.position.first,
-            player2State.position.second
+            playerState.position.first,
+            playerState.position.second
         ), // Posición actual
-        player2State.fuel, // Dirección del viento
+        playerState.fuel, // Dirección del viento
         intArrayOf(
             chosenMove.first,
             chosenMove.second
