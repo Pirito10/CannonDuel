@@ -16,6 +16,8 @@ fun handleActionButtonClick(
     gridState: Array<Array<Boolean>>,
     windDirection: MutableState<String>,
     windStrength: MutableState<Int>,
+    knownWindDirection: MutableState<String>,
+    knownWindStrength: MutableState<Int>,
     onInfoUpdate: (String) -> Unit,
     onActionChange: (String) -> Unit,
     onClearSelection: () -> Unit,
@@ -28,8 +30,8 @@ fun handleActionButtonClick(
                 player1State,
                 player2State,
                 gridState,
-                windDirection.value,
-                windStrength.value,
+                knownWindDirection.value,
+                knownWindStrength.value,
                 onGameOver,
                 pythonModule
             )
@@ -42,13 +44,18 @@ fun handleActionButtonClick(
                 player2State,
                 player1State, // Intercambiamos el orden de los estados
                 gridState,
-                windDirection.value,
-                windStrength.value,
+                knownWindDirection.value,
+                knownWindStrength.value,
                 onGameOver,
                 pythonModule
             )
 
-            updateWind(windDirection, windStrength) // Actualizamos el viento
+            updateWind(
+                windDirection,
+                windStrength,
+                knownWindDirection,
+                knownWindStrength
+            ) // Actualizamos el viento
         }
     }
 
@@ -91,7 +98,7 @@ fun handleActionButtonClick(
                 pythonModule
             )
             // Actualizamos el viento
-            updateWind(windDirection, windStrength)
+            updateWind(windDirection, windStrength, knownWindDirection, knownWindStrength)
         }
     }
 
@@ -462,8 +469,13 @@ fun updateInfoMessage(infoMessage: MutableState<String>, message: String) {
 // Función para actualizar el viento
 fun updateWind(
     windDirection: MutableState<String>,
-    windStrength: MutableState<Int>
+    windStrength: MutableState<Int>,
+    knownWindDirection: MutableState<String>,
+    knownWindStrength: MutableState<Int>
 ) {
+    knownWindDirection.value = windDirection.value
+    knownWindStrength.value = windStrength.value
+
     // Lista de posibles direcciones
     val directions = listOf("N", "NE", "E", "SE", "S", "SW", "W", "NW")
     // Máximo valor de intensidad

@@ -73,6 +73,8 @@ fun GameScreen(player: String, difficulty: String, onGameOver: () -> Unit, pytho
     val windDirection = remember { mutableStateOf("N") }
     // Fuerza del viento
     val windStrength = remember { mutableIntStateOf(0) }
+    val knownWindDirection = remember { mutableStateOf("?") }
+    val knownWindStrength = remember { mutableIntStateOf(0) }
     // Casilla seleccionada
     val selectedCell = remember { mutableStateOf<Pair<Int, Int>?>(null) }
     // Munición seleccionada
@@ -110,7 +112,7 @@ fun GameScreen(player: String, difficulty: String, onGameOver: () -> Unit, pytho
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Información del viento
-            WindInfo(direction = windDirection.value, strength = windStrength.intValue)
+            WindInfo(direction = knownWindDirection.value, strength = knownWindStrength.intValue)
 
             // Grid de juego
             GameGrid(
@@ -164,6 +166,8 @@ fun GameScreen(player: String, difficulty: String, onGameOver: () -> Unit, pytho
                         gridState = gridState.value,
                         windDirection = windDirection,
                         windStrength = windStrength,
+                        knownWindDirection,
+                        knownWindStrength,
                         onInfoUpdate = { message -> updateInfoMessage(infoMessage, message) },
                         onActionChange = { actionButtonText.value = it },
                         onClearSelection = { selectedCell.value = null },
