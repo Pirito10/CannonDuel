@@ -10,7 +10,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun GameOverScreen() {
+fun GameOverScreen(
+    player1State: PlayerState?,
+    player2State: PlayerState?
+) {
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center

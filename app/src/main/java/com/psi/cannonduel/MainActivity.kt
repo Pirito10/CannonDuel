@@ -45,6 +45,8 @@ fun ManageNavigation(pythonModule: PyObject) {
     var currentScreen by remember { mutableStateOf("gamemodeSelectionScreen") }
     var gamemode by remember { mutableStateOf("User vs AI") }
     var difficulty by remember { mutableStateOf("Normal") }
+    var player1State: PlayerState? = null
+    var player2State: PlayerState? = null
 
     // Mostramos la pantalla correspondiente
     when (currentScreen) {
@@ -62,13 +64,15 @@ fun ManageNavigation(pythonModule: PyObject) {
             }
         }
 
-        "gameScreen" -> GameScreen(gamemode, difficulty, pythonModule) {
+        "gameScreen" -> GameScreen(gamemode, difficulty, pythonModule) { player1, player2 ->
+            player1State = player1
+            player2State = player2
             currentScreen = "gameOverScreen"
         }
 
         // TODO implementar más tarde
         //"trainingScreen" -> TrainingScreen()
 
-        "gameOverScreen" -> GameOverScreen()
+        "gameOverScreen" -> GameOverScreen(player1State, player2State)
     }
 }

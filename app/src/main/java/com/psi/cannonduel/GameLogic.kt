@@ -21,7 +21,7 @@ fun handleActionButtonClick(
     pythonModule: PyObject,
     onActionChange: (String) -> Unit,
     onClearSelection: () -> Unit,
-    onGameOver: () -> Unit
+    onGameOver: (PlayerState, PlayerState) -> Unit
 ) {
     if (gamemode == "User vs AI") {
         runUserGame(
@@ -73,7 +73,7 @@ fun runUserGame(
     knownWindDirection: MutableState<String>,
     knownWindStrength: MutableState<Int>,
     onActionChange: (String) -> Unit,
-    onGameOver: () -> Unit,
+    onGameOver: (PlayerState, PlayerState) -> Unit,
     pythonModule: PyObject
 ) {
     when (actionText) {
@@ -130,7 +130,7 @@ fun runAIGame(
     windStrength: MutableState<Int>,
     knownWindDirection: MutableState<String>,
     knownWindStrength: MutableState<Int>,
-    onGameOver: () -> Unit,
+    onGameOver: (PlayerState, PlayerState) -> Unit,
     pythonModule: PyObject
 ) {
     // Ejecutamos turnos en bucle hasta que termine la partida
@@ -206,7 +206,7 @@ fun handleShoot(
     windDirection: String,
     windStrength: Int,
     onActionChange: (String) -> Unit,
-    onGameOver: () -> Unit
+    onGameOver: (PlayerState, PlayerState) -> Unit
 ) {
     // Comprobamos si se ha seleccionado una casilla
     if (selectedCell == null) {
@@ -231,7 +231,7 @@ fun handleShoot(
 
     // Comprobamos si se terminó la partida
     if (checkGameOver(shooterState, targetState)) {
-        onGameOver()
+        onGameOver(shooterState, targetState)
     }
 
     // Cambiamos el botón de acción
@@ -272,7 +272,7 @@ fun handleNext(
     knownWindStrength: Int,
     pythonModule: PyObject,
     onActionChange: (String) -> Unit,
-    onGameOver: () -> Unit
+    onGameOver: (PlayerState, PlayerState) -> Unit
 ) {
     // Gestionamos el turno del rival según la dificultad seleccionada
     when (difficulty) {

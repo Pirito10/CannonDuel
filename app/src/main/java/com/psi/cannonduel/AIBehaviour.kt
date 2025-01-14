@@ -10,7 +10,7 @@ fun handleRandomAI(
     gridState: Array<Array<Boolean>>,
     windDirection: String,
     windStrength: Int,
-    onGameOver: () -> Unit
+    onGameOver: (PlayerState, PlayerState) -> Unit
 ) {
     // Filtramos los tipos de munición disponibles
     val availableAmmoTypes = playerState.ammo.filter { it.value > 0 }.keys
@@ -39,7 +39,7 @@ fun handleRandomAI(
 
     // Comprobamos si se terminó la partida
     if (checkGameOver(playerState, enemyState)) {
-        onGameOver()
+        onGameOver(playerState, enemyState)
     }
 
     // Generamos una lista de casillas disponibles en el grid
@@ -71,7 +71,7 @@ fun handleNormalAI(
     windStrength: Int,
     knownWindDirection: String,
     knownWindStrength: Int,
-    onGameOver: () -> Unit,
+    onGameOver: (PlayerState, PlayerState) -> Unit,
     pythonModule: PyObject
 ) {
     // Obtener los tipos de munición disponibles
@@ -141,7 +141,7 @@ fun handleNormalAI(
 
     // Comprobamos si terminó la partida
     if (checkGameOver(playerState, enemyState)) {
-        onGameOver()
+        onGameOver(playerState, enemyState)
         return
     }
 

@@ -62,7 +62,7 @@ fun GameScreen(
     gamemode: String,
     difficulty: String,
     pythonModule: PyObject,
-    onGameOver: () -> Unit
+    onGameOver: (PlayerState, PlayerState) -> Unit
 ) {
     // Estados de los jugadores
     val player1State = remember { mutableStateOf(createPlayerState(5)) }
