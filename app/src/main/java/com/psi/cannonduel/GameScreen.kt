@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -119,11 +120,20 @@ fun GameScreen(
             Modifier.align(Alignment.TopCenter)
         )
 
+        HorizontalDivider(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 52.dp)
+                .align(Alignment.TopCenter),
+            thickness = 1.dp
+        )
+
         // Contenedor central para grid, caja de información y barra de combustible
         Column(
             modifier = Modifier
-                .align(Alignment.Center)
-                .padding(16.dp),
+                .align(Alignment.TopCenter)
+                .padding(top = 64.dp)
+                .padding(horizontal = 8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Información del viento
