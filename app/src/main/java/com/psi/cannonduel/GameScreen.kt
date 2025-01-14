@@ -81,6 +81,27 @@ fun GameScreen(
     val actionButtonText = remember { mutableStateOf("Shoot") }
     val infoMessage = remember { mutableStateOf("Choose a target") }
 
+    if (gamemode == "AI vs AI") {
+        handleActionButtonClick(
+            gamemode,
+            difficulty,
+            actionButtonText.value,
+            selectedCell.value,
+            selectedAmmo,
+            player1State.value,
+            player2State.value,
+            gridState.value,
+            windDirection,
+            windStrength,
+            knownWindDirection,
+            knownWindStrength,
+            pythonModule,
+            { actionButtonText.value = it },
+            { selectedCell.value = null },
+            onGameOver
+        )
+    }
+
     // Contenedor que ocupa toda la pantalla
     Box(Modifier.fillMaxSize()) {
         // Barra inferior para el jugador 1
