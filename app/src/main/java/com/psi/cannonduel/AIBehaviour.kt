@@ -207,9 +207,9 @@ fun calculateShotReward(hit: Boolean): Int {
 
 // Función para calcular la recompensa tras moverse
 fun calculateMoveReward(playerState: PlayerState, enemyState: PlayerState): Int {
-    return if (playerState.position == enemyState.position) {
-        -10
-    } else {
+    return if (playerState.hp == playerState.previousHp) {
         5
+    } else {
+        -10
     }
 }
