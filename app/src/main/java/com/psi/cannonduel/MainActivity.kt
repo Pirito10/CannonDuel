@@ -47,8 +47,8 @@ fun ManageNavigation(pythonModule: PyObject) {
     var gamemode by remember { mutableStateOf("User vs AI") }
     var difficulty by remember { mutableStateOf("Normal") }
     var games by remember { mutableIntStateOf(1) }
-    var player1State: PlayerState? = null
-    var player2State: PlayerState? = null
+    var player1State by remember { mutableStateOf(createPlayerState(0)) }
+    var player2State by remember { mutableStateOf(createPlayerState(0)) }
 
     // Mostramos la pantalla correspondiente
     when (currentScreen) {

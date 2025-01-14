@@ -20,8 +20,8 @@ fun handleRandomAI(
     // Disparamos si nos queda munición
     if (availableAmmoTypes.isNotEmpty()) {
         // Generamos una casilla aleatoria
-        val randomRow = (0 until GRID_SIZE).random()
-        val randomCol = (0 until GRID_SIZE).random()
+        val randomRow = (0 until GRID_SIZE - 1).random()
+        val randomCol = (0 until GRID_SIZE - 1).random()
         val selectedCell = Pair(randomRow, randomCol)
 
         // Elegimos un tipo de munición aleatorio
@@ -47,8 +47,8 @@ fun handleRandomAI(
 
     // Generamos una lista de casillas disponibles en el grid
     val availableCells = mutableListOf<Pair<Int, Int>>()
-    for (row in 0 until GRID_SIZE) {
-        for (col in 0 until GRID_SIZE) {
+    for (row in 0 until GRID_SIZE - 1) {
+        for (col in 0 until GRID_SIZE - 1) {
             if (gridState[row][col]) {
                 availableCells.add(Pair(row, col))
             }
