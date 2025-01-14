@@ -180,7 +180,7 @@ fun handleNormalAI(
     processMove(chosenMove, playerState, enemyState, gridState)
 
     // Actualizamos la tabla Q de movimientos
-    val moveReward = calculateMoveReward(playerState, enemyState)
+    val moveReward = calculateMoveReward(playerState)
     pythonModule.callAttr(
         "update_move_q_table",
         pythonModule["q_table_move"],
@@ -206,7 +206,7 @@ fun calculateShotReward(hit: Boolean): Int {
 }
 
 // Función para calcular la recompensa tras moverse
-fun calculateMoveReward(playerState: PlayerState, enemyState: PlayerState): Int {
+fun calculateMoveReward(playerState: PlayerState): Int {
     return if (playerState.hp == playerState.previousHp) {
         5
     } else {
