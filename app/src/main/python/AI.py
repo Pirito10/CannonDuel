@@ -4,8 +4,8 @@ import random
 from java.util import ArrayList
 
 # Formas de las tablas Q
-SHOOT_Q_SHAPE = (8, 8, 8, 8, 4, 3, 9, 5, 3, 8, 8, 3)
-MOVE_Q_SHAPE = (10, 10, 101)
+SHOOT_Q_SHAPE = (6, 6, 6, 6, 4, 3, 7, 4, 2, 6, 6, 3)
+MOVE_Q_SHAPE = (6, 6, 21, 6, 6)
 
 # Hiperparámetros
 EPSILON = 0.1  # Tasa de exploración
@@ -53,12 +53,11 @@ def load_or_initialize_q_table(file_path, shape):
         return np.load(file_path)
     else:
         print(f"[DEBUG] Initializing a new Q-table with shape {shape}")
-        return np.zeros(shape)
+        return np.zeros(shape, dtype=np.float32)
 
 
 # Función para guardar las tablas Q
 def save_q_table(q_table, file_path):
-    """Guardar la tabla Q en un archivo."""
     print(f"[DEBUG] Saving Q-table to {file_path}")
     np.save(file_path, q_table)
 
@@ -83,7 +82,7 @@ def choose_shot(q_table, current_position, enemy_position, wind_direction, wind_
     # Exploración
     if random.random() < EPSILON:
         print(f"[DEBUG] Exploring: Choosing random cell from grid")
-        available_cells = [(i, j) for i in range(8) for j in range(8)]
+        available_cells = [(i, j) for i in range(6) for j in range(6)]
         available_ammo = [0, 1, 2]
         chosen_cell = list(random.choice(available_cells))
         chosen_ammo = random.choice(available_ammo)
@@ -100,8 +99,8 @@ def choose_shot(q_table, current_position, enemy_position, wind_direction, wind_
 
     for ammo_type in range(3):  # Tipos de munición
         if ammo_counts[ammo_type] > 0:  # Solo considerar munición disponible
-            for i in range(8):
-                for j in range(8):
+            for i in range(6):
+                for j in range(6):
                     # Calcular el Q-value para el estado y acción actual
                     action = (i, j, ammo_type)
                     full_state_action = state + action
@@ -155,8 +154,8 @@ def update_shoot_q_table(q_table, current_position, enemy_position, wind_directi
     # Encontrar el mejor Q-value para el estado siguiente
     best_next_q = -float("inf")
     for next_ammo_type in range(3):
-        for i in range(8):
-            for j in range(8):
+        for i in range(6):
+            for j in range(6):
                 next_full_state_action = next_state + (i, j, next_ammo_type)
                 best_next_q = max(best_next_q, q_table[next_full_state_action])
 
@@ -171,15 +170,17 @@ def update_shoot_q_table(q_table, current_position, enemy_position, wind_directi
     save_q_table(q_table, get_shoot_q_file())
 
 
+# Función para seleccionar a qué casilla moverse
 def choose_move(q_table, current_position, fuel, valid_cells):
     print(f"[DEBUG] Choosing move for position: {current_position} with fuel: {fuel}")
     print(f"[DEBUG] Valid cells: {valid_cells}")
 
-    # Representar el estado actual
+    # Estado actual
     state = (current_position[0], current_position[1], fuel)
 
     print(f"[DEBUG] Choosing move for state {state}")
 
+    # Exploración
     if random.random() < EPSILON:
         print(f"[DEBUG] Exploring: Choosing random cell from ${valid_cells}")
         chosen_cell = list(random.choice(valid_cells))
@@ -189,30 +190,60 @@ def choose_move(q_table, current_position, fuel, valid_cells):
         result.add(chosen_cell[1])
         return result
 
-    # Evaluar las Q-values
-    q_values = [q_table[cell[0], cell[1], fuel] for cell in valid_cells]
-    print(f"[DEBUG] Exploiting: Q-values for valid cells: {q_values}")
-    chosen_cell = list(valid_cells[np.argmax(q_values)])
-    print(f"[DEBUG] Chosen cell: {chosen_cell}")
+    # Explotación
+    print(f"[DEBUG] Exploiting: Evaluating Q-values for valid cells")
+    best_q_value = -float("inf")
+    best_cell = None
+
+    for cell in valid_cells:
+        # Estado-acción para la tabla Q
+        action = (cell[0], cell[1])
+        full_state_action = state + action
+
+        # Obtener el Q-value correspondiente
+        q_value = q_table[full_state_action]
+
+        # Actualizar si encontramos un mejor valor
+        if q_value > best_q_value:
+            best_q_value = q_value
+            best_cell = cell
+
+    print(f"[DEBUG] Best cell: {best_cell} with Q-value: {best_q_value}")
     result = ArrayList()
-    result.add(int(chosen_cell[0]))
-    result.add(int(chosen_cell[1]))
+    result.add(best_cell[0])
+    result.add(best_cell[1])
     return result
 
 
-def update_move_q_table(q_table, current_position, fuel, next_position, reward):
+# Función para actualizar la tabla Q de movimientos
+def update_move_q_table(q_table, current_position, fuel, target_position, reward):
     print(f"[DEBUG] Updating move Q-table")
 
-    # Estado actual y próximo
+    # Estado actual
     state = (current_position[0], current_position[1], fuel)
-    next_state = (next_position[0], next_position[1], max(fuel - 1, 0))
+
+    # Acción actual (posición objetivo)
+    action = (target_position[0], target_position[1])
+
+    # Estado y acción combinados para acceder a la tabla Q
+    full_state_action = state + action
+
+    # Determinar el estado siguiente
+    next_state = (target_position[0], target_position[1], fuel)
+
+    # Encontrar el mejor Q-value para el estado siguiente
+    best_next_q = -float("inf")
+    for i in range(6):  # Grid de 6x6
+        for j in range(6):
+            next_full_state_action = next_state + (i, j)
+            best_next_q = max(best_next_q, q_table[next_full_state_action])
 
     # Q-learning update
-    old_q = q_table[state]
-    best_next_q = np.max(q_table[next_state])
-    q_table[state] += ALPHA * (reward + GAMMA * best_next_q - old_q)
+    old_q = q_table[full_state_action]
+    q_table[full_state_action] += ALPHA * (reward + GAMMA * best_next_q - old_q)
 
-    print(f"[DEBUG] Updated Q-value for state {state}: {old_q} -> {q_table[state]}")
+    print(
+        f"[DEBUG] Updated Q-value for state-action {full_state_action}: {old_q} -> {q_table[full_state_action]}")
 
     # Guardar la tabla Q actualizada
     save_q_table(q_table, get_move_q_file())

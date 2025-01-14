@@ -21,11 +21,11 @@ import kotlin.random.Random
 
 // Constantes con valores por defecto
 const val MAX_HP = 5
-const val MAX_STANDARD_AMMO = 8
-const val MAX_PRECISION_AMMO = 4
-const val MAX_NUKE_AMMO = 2
-const val MAX_FUEL = 100
-const val GRID_SIZE = 8
+const val MAX_STANDARD_AMMO = 6
+const val MAX_PRECISION_AMMO = 3
+const val MAX_NUKE_AMMO = 1
+const val MAX_FUEL = 20
+const val GRID_SIZE = 6
 
 // Clase para encapsular el estado de los jugadores
 data class PlayerState(
@@ -62,7 +62,7 @@ fun GameScreen(
     onGameOver: () -> Unit
 ) {
     // Estados de los jugadores
-    val player1State = remember { mutableStateOf(createPlayerState(7)) }
+    val player1State = remember { mutableStateOf(createPlayerState(5)) }
     val player2State = remember { mutableStateOf(createPlayerState(0)) }
     // Estado del viento
     val windDirection = remember { mutableStateOf("N") }

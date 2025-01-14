@@ -139,7 +139,7 @@ fun handleNormalAI(
         )
     }
 
-    // Comprobar si terminó la partida
+    // Comprobamos si terminó la partida
     if (checkGameOver(playerState, enemyState)) {
         onGameOver()
         return
@@ -162,7 +162,7 @@ fun handleNormalAI(
     }.map { intArrayOf(it.first, it.second) }.toTypedArray()
         .ifEmpty { arrayOf(intArrayOf(playerState.position.first, playerState.position.second)) }
 
-    // Llamar al script Python para elegir el movimiento
+    // Obtenemos la casilla a la que moverse
     val chosenMoveList = pythonModule.callAttr(
         "choose_move",
         pythonModule["q_table_move"], // Tabla Q de movimientos
@@ -174,27 +174,26 @@ fun handleNormalAI(
         validCells // Casillas válidas
     ).toJava(List::class.java) as ArrayList<Int>
 
-    // Convertir a Pair para Kotlin
     val chosenMove = Pair(chosenMoveList[0], chosenMoveList[1])
 
-    // Procesar el movimiento
+    // Procesamos el movimiento
     processMove(chosenMove, playerState, enemyState, gridState)
 
-    // Actualizar la tabla Q de movimientos
+    // Actualizamos la tabla Q de movimientos
     val moveReward = calculateMoveReward(playerState, enemyState)
     pythonModule.callAttr(
         "update_move_q_table",
-        pythonModule["q_table_move"], // Tabla Q de disparos
+        pythonModule["q_table_move"],
         intArrayOf(
             playerState.position.first,
             playerState.position.second
-        ), // Posición actual
-        playerState.fuel, // Dirección del viento
+        ),
+        playerState.fuel,
         intArrayOf(
             chosenMove.first,
             chosenMove.second
-        ), // Posición objetivo
-        moveReward // Recompensa obtenida
+        ),
+        moveReward
     )
 }
 
