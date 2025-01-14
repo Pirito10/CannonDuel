@@ -52,16 +52,16 @@ fun ManageNavigation(pythonModule: PyObject) {
     when (currentScreen) {
         "gamemodeSelectionScreen" -> GamemodeSelectionScreen { selectedGamemode ->
             gamemode = selectedGamemode
-            currentScreen = "difficultySelectionScreen"
+            currentScreen = if (gamemode == "User vs AI" || gamemode == "AI vs AI") {
+                "difficultySelectionScreen"
+            } else {
+                "trainingScreen"
+            }
         }
 
         "difficultySelectionScreen" -> DifficultySelectionScreen { selectedDifficulty ->
             difficulty = selectedDifficulty
-            currentScreen = if (gamemode == "User vs AI" || gamemode == "AI vs AI") {
-                "gameScreen"
-            } else {
-                "trainingScreen"
-            }
+            currentScreen = "gameScreen"
         }
 
         "gameScreen" -> GameScreen(gamemode, difficulty, pythonModule) { player1, player2 ->
@@ -70,9 +70,10 @@ fun ManageNavigation(pythonModule: PyObject) {
             currentScreen = "gameOverScreen"
         }
 
-        // TODO implementar más tarde
-        //"trainingScreen" -> TrainingScreen()
-
         "gameOverScreen" -> GameOverScreen(player1State, player2State)
+
+        "trainingScreen" -> TrainingScreen { games ->
+            currentScreen = "gameScreen"
+        }
     }
 }
