@@ -1,5 +1,6 @@
 package com.psi.cannonduel
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import com.chaquo.python.PyObject
 
@@ -10,6 +11,7 @@ fun handleRandomAI(
     gridState: Array<Array<Boolean>>,
     windDirection: String,
     windStrength: Int,
+    infoMessage: MutableState<String>,
     onGameOver: (PlayerState, PlayerState) -> Unit
 ) {
     // Filtramos los tipos de munición disponibles
@@ -33,7 +35,8 @@ fun handleRandomAI(
             windStrength,
             playerState,
             enemyState,
-            gridState
+            gridState,
+            infoMessage
         )
     }
 
@@ -56,7 +59,7 @@ fun handleRandomAI(
 
     // Recorremos la lista hasta encontrar una casilla válida para moverse a ella
     for (cell in shuffledAvailableCells) {
-        if (processMove(cell, playerState, enemyState, gridState)) {
+        if (processMove(cell, playerState, enemyState, gridState, infoMessage)) {
             break
         }
     }
@@ -71,6 +74,7 @@ fun handleNormalAI(
     windStrength: Int,
     knownWindDirection: String,
     knownWindStrength: Int,
+    infoMessage: MutableState<String>,
     onGameOver: (PlayerState, PlayerState) -> Unit,
     pythonModule: PyObject
 ) {
@@ -113,7 +117,8 @@ fun handleNormalAI(
             windStrength,
             playerState,
             enemyState,
-            gridState
+            gridState,
+            infoMessage
         )
 
         // Actualizamos la tabla Q de disparos
@@ -177,7 +182,7 @@ fun handleNormalAI(
     val chosenMove = Pair(chosenMoveList[0].toInt(), chosenMoveList[1].toInt())
 
     // Procesamos el movimiento
-    processMove(chosenMove, playerState, enemyState, gridState)
+    processMove(chosenMove, playerState, enemyState, gridState, infoMessage)
 
     // Actualizamos la tabla Q de movimientos
     val moveReward = calculateMoveReward(playerState)

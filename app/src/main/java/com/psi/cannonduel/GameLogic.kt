@@ -18,6 +18,7 @@ fun handleActionButtonClick(
     windStrength: MutableState<Int>,
     knownWindDirection: MutableState<String>,
     knownWindStrength: MutableState<Int>,
+    infoMessage: MutableState<String>,
     pythonModule: PyObject,
     onActionChange: (String) -> Unit,
     onClearSelection: () -> Unit,
@@ -36,6 +37,7 @@ fun handleActionButtonClick(
             windStrength,
             knownWindDirection,
             knownWindStrength,
+            infoMessage,
             onActionChange,
             onGameOver,
             pythonModule
@@ -50,6 +52,7 @@ fun handleActionButtonClick(
             windStrength,
             knownWindDirection,
             knownWindStrength,
+            infoMessage,
             onGameOver,
             pythonModule
         )
@@ -72,6 +75,7 @@ fun runUserGame(
     windStrength: MutableState<Int>,
     knownWindDirection: MutableState<String>,
     knownWindStrength: MutableState<Int>,
+    infoMessage: MutableState<String>,
     onActionChange: (String) -> Unit,
     onGameOver: (PlayerState, PlayerState) -> Unit,
     pythonModule: PyObject
@@ -86,6 +90,7 @@ fun runUserGame(
             gridState,
             windDirection.value,
             windStrength.value,
+            infoMessage,
             onActionChange,
             onGameOver
         )
@@ -96,6 +101,7 @@ fun runUserGame(
             gridState,
             player1State,
             player2State,
+            infoMessage,
             onActionChange
         )
 
@@ -110,6 +116,7 @@ fun runUserGame(
                 windStrength.value,
                 knownWindDirection.value,
                 knownWindStrength.value,
+                infoMessage,
                 pythonModule,
                 onActionChange,
                 onGameOver
@@ -130,6 +137,7 @@ fun runAIGame(
     windStrength: MutableState<Int>,
     knownWindDirection: MutableState<String>,
     knownWindStrength: MutableState<Int>,
+    infoMessage: MutableState<String>,
     onGameOver: (PlayerState, PlayerState) -> Unit,
     pythonModule: PyObject
 ) {
@@ -143,6 +151,7 @@ fun runAIGame(
                 gridState,
                 windDirection.value,
                 windStrength.value,
+                infoMessage,
                 onGameOver
             )
         } else {
@@ -154,6 +163,7 @@ fun runAIGame(
                 windStrength.value,
                 knownWindDirection.value,
                 knownWindStrength.value,
+                infoMessage,
                 onGameOver,
                 pythonModule
             )
@@ -170,6 +180,7 @@ fun runAIGame(
                 gridState,
                 windDirection.value,
                 windStrength.value,
+                infoMessage,
                 onGameOver
             )
         } else {
@@ -181,6 +192,7 @@ fun runAIGame(
                 windStrength.value,
                 knownWindDirection.value,
                 knownWindStrength.value,
+                infoMessage,
                 onGameOver,
                 pythonModule
             )
@@ -205,16 +217,19 @@ fun handleShoot(
     gridState: Array<Array<Boolean>>,
     windDirection: String,
     windStrength: Int,
+    infoMessage: MutableState<String>,
     onActionChange: (String) -> Unit,
     onGameOver: (PlayerState, PlayerState) -> Unit
 ) {
     // Comprobamos si se ha seleccionado una casilla
     if (selectedCell == null) {
+        updateInfoMessage(infoMessage, "Choose a target")
         return
     }
 
     // Comprobamos si se ha seleccionado una munición
     if (selectedAmmo.value.isEmpty()) {
+        updateInfoMessage(infoMessage, "Choose an ammo")
         return
     }
 
@@ -226,7 +241,8 @@ fun handleShoot(
         windStrength,
         shooterState,
         targetState,
-        gridState
+        gridState,
+        infoMessage
     )
 
     // Comprobamos si se terminó la partida
@@ -244,20 +260,23 @@ fun handleMove(
     gridState: Array<Array<Boolean>>,
     playerState: PlayerState,
     enemyState: PlayerState,
+    infoMessage: MutableState<String>,
     onActionChange: (String) -> Unit
 ) {
     // Comprobamos si se ha seleccionado una casilla
     if (selectedCell == null) {
+        updateInfoMessage(infoMessage, "Choose a cell")
         return
     }
 
     // Procesamos el movimiento y comprobamos que se haya realizado
-    if (!processMove(selectedCell, playerState, enemyState, gridState)) {
+    if (!processMove(selectedCell, playerState, enemyState, gridState, infoMessage)) {
         return
     }
 
     // Cambiamos el botón de acción
     onActionChange("Next")
+    updateInfoMessage(infoMessage, "Turn ended")
 }
 
 // Función para gestionar la lógica de siguiente turno
@@ -270,6 +289,7 @@ fun handleNext(
     windStrength: Int,
     knownWindDirection: String,
     knownWindStrength: Int,
+    infoMessage: MutableState<String>,
     pythonModule: PyObject,
     onActionChange: (String) -> Unit,
     onGameOver: (PlayerState, PlayerState) -> Unit
@@ -282,6 +302,7 @@ fun handleNext(
             gridState,
             windDirection,
             windStrength,
+            infoMessage,
             onGameOver
         )
 
@@ -293,6 +314,7 @@ fun handleNext(
             windStrength,
             knownWindDirection,
             knownWindStrength,
+            infoMessage,
             onGameOver,
             pythonModule
         )
@@ -300,6 +322,7 @@ fun handleNext(
 
     // Cambiamos el botón de acción
     onActionChange("Shoot")
+    updateInfoMessage(infoMessage, "Select a target")
 }
 
 // Función para procesar un disparo
@@ -310,7 +333,8 @@ fun processShot(
     windStrength: Int,
     shooterState: PlayerState,
     targetState: PlayerState,
-    gridState: Array<Array<Boolean>>
+    gridState: Array<Array<Boolean>>,
+    infoMessage: MutableState<String>
 ): Boolean {
     // Reducimos la munición del tipo seleccionado
     val ammoType = selectedAmmo.value
@@ -330,6 +354,7 @@ fun processShot(
                 shooterState.position -> {
                     shooterState.previousHp = shooterState.hp
                     shooterState.hp = (shooterState.hp - damage).coerceAtLeast(0)
+                    updateInfoMessage(infoMessage, "You hit yourself. Select a cell")
                     return false
                 }
 
@@ -337,12 +362,14 @@ fun processShot(
                 targetState.position -> {
                     targetState.previousHp = targetState.hp
                     targetState.hp = (targetState.hp - damage).coerceAtLeast(0)
+                    updateInfoMessage(infoMessage, "Enemy hit. Select a cell")
                     return true
                 }
 
                 // Si falla, marcamos la casilla como destruída
                 else -> {
                     gridState[hitCell.first][hitCell.second] = false
+                    updateInfoMessage(infoMessage, "Missed. Select a cell")
                     return false
                 }
             }
@@ -356,6 +383,7 @@ fun processShot(
                 shooterState.position -> {
                     shooterState.previousHp = shooterState.hp
                     shooterState.hp = (shooterState.hp - damage).coerceAtLeast(0)
+                    updateInfoMessage(infoMessage, "You hit yourself. Select a cell")
                     return false
                 }
 
@@ -363,12 +391,14 @@ fun processShot(
                 targetState.position -> {
                     targetState.previousHp = targetState.hp
                     targetState.hp = (targetState.hp - damage).coerceAtLeast(0)
+                    updateInfoMessage(infoMessage, "Enemy hit. Select a cell")
                     return true
                 }
 
                 // Si falla, marcamos la casilla como destruída
                 else -> {
                     gridState[targetCell.first][targetCell.second] = false
+                    updateInfoMessage(infoMessage, "Missed. Select a cell")
                     return false
                 }
             }
@@ -381,6 +411,7 @@ fun processShot(
             val hitCell = calculateHitCell(targetCell, windDirection, windStrength)
 
             var enemyHit = false
+            updateInfoMessage(infoMessage, "Missed. Select a cell")
 
             // Eliminamos todas las casillas adyacentes
             for (rowOffset in -1..1) {
@@ -404,6 +435,7 @@ fun processShot(
                                 targetState.previousHp = targetState.hp
                                 targetState.hp =
                                     (targetState.hp - damage).coerceAtLeast(0)
+                                updateInfoMessage(infoMessage, "Enemy hit. Select a cell")
                                 enemyHit = true
                             }
 
@@ -426,25 +458,32 @@ fun processMove(
     selectedCell: Pair<Int, Int>,
     playerState: PlayerState,
     enemyState: PlayerState,
-    gridState: Array<Array<Boolean>>
+    gridState: Array<Array<Boolean>>,
+    infoMessage: MutableState<String>
 ): Boolean {
     // Comprobamos que la casilla no sea la del oponente
     if (selectedCell == enemyState.position) {
+        updateInfoMessage(infoMessage, "Unavailable cell. Select a cell")
         return false
     }
 
     // Calculamos la menor distancia a la casilla seleccionada y comprobamos que exista un camino válido
     val distance = calculatePathDistance(playerState.position, selectedCell, gridState)
-        ?: return false
+        ?: run {
+            updateInfoMessage(infoMessage, "No path available. Select a cell")
+            return false
+        }
 
     // Comprobamos si hay suficiente combustible
     if (playerState.fuel < distance) {
+        updateInfoMessage(infoMessage, "Not enough fuel. Select a cell")
         return false
     }
 
     // Actualizamos la posición y combustible del jugador
     playerState.position = selectedCell
     playerState.fuel -= distance
+    updateInfoMessage(infoMessage, "Turn ended")
     return true
 }
 
@@ -550,6 +589,11 @@ fun updateWind(
     val directionChange = listOf(-1, 0, 1).random()
     val newIndex = (currentIndex + directionChange + directions.size) % directions.size
     windDirection.value = directions[newIndex]
+}
+
+// Función para actualizar el texto del cuadro de información
+fun updateInfoMessage(infoMessage: MutableState<String>, newMessage: String) {
+    infoMessage.value = newMessage
 }
 
 // Función para comprobar si se ha terminado la partida
