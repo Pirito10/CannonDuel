@@ -97,7 +97,7 @@ fun handleNormalAI(
             )
         ).toJava(ArrayList::class.java) as ArrayList<Int>
 
-        val targetCell = Pair(result[0], result[1])
+        val targetCell = Pair(result[0].toInt(), result[1].toInt())
         val ammoType = when (result[2].toInt()) {
             0 -> "Standard"
             1 -> "Precision"
@@ -165,16 +165,16 @@ fun handleNormalAI(
     // Obtenemos la casilla a la que moverse
     val chosenMoveList = pythonModule.callAttr(
         "choose_move",
-        pythonModule["q_table_move"], // Tabla Q de movimientos
+        pythonModule["q_table_move"],
         intArrayOf(
             playerState.position.first,
             playerState.position.second
-        ), // Posición actual
-        playerState.fuel, // Combustible restante
-        validCells // Casillas válidas
+        ),
+        playerState.fuel,
+        validCells
     ).toJava(List::class.java) as ArrayList<Int>
 
-    val chosenMove = Pair(chosenMoveList[0], chosenMoveList[1])
+    val chosenMove = Pair(chosenMoveList[0].toInt(), chosenMoveList[1].toInt())
 
     // Procesamos el movimiento
     processMove(chosenMove, playerState, enemyState, gridState)
