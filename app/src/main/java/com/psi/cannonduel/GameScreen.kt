@@ -89,8 +89,8 @@ fun GameScreen(
     val actionButtonText = remember { mutableStateOf("Shoot") }
     val infoMessage = remember { mutableStateOf("Choose a target") }
 
-    // Si el modo de juego es IA vs IA, ejecutamos directamente la partida sin mostrar la interfaz
     when (gamemode) {
+        // Si el modo de juego es IA vs IA, ejecutamos directamente la partida sin mostrar la interfaz
         "AI vs AI" -> {
             handleActionButtonClick(
                 gamemode,
