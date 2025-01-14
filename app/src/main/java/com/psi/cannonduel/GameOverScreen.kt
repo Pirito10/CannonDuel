@@ -47,6 +47,22 @@ fun GameOverScreen(
             modifier = Modifier.padding(top = 80.dp)
         )
 
+        val winnerText = if (player1State.hp > player2State.hp) {
+            "Winner is Player 1"
+        } else if (player1State.hp < player2State.hp) {
+            "Winner is Player 2"
+        } else {
+            "It's a draw"
+        }
+
+        Text(text = winnerText,
+            fontSize = 30.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 100.dp)
+        )
+
         Button(
             onClick = onBackToMenuClick,
             contentPadding = PaddingValues(horizontal = 60.dp, vertical = 10.dp),
