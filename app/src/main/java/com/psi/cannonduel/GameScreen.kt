@@ -107,14 +107,14 @@ fun GameScreen(
     Box(Modifier.fillMaxSize()) {
         // Barra inferior para el jugador 1
         PlayerBar(
-            "Player 1",
+            "Player 1 (You)",
             player1State.value.hp / MAX_HP.toFloat(),
             Modifier.align(Alignment.BottomCenter)
         )
 
         // Barra superior para el jugador 2
         PlayerBar(
-            "Player 2",
+            "Player 2 (AI)",
             player2State.value.hp / MAX_HP.toFloat(),
             Modifier.align(Alignment.TopCenter)
         )

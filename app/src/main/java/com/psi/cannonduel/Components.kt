@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -33,24 +34,35 @@ fun PlayerBar(playerName: String, progress: Float, modifier: Modifier = Modifier
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(12.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Nombre del jugador
         Text(
             text = playerName,
-            fontSize = 24.sp,
+            fontSize = 28.sp,
             fontWeight = FontWeight.Bold
         )
-        // HP del jugador
-        LinearProgressIndicator(
-            progress = { progress },
+        // Contenedor para la barra de vida y su texto
+        Box(
             modifier = Modifier
                 .width(180.dp)
-                .height(12.dp),
-            color = Color.Green,
-        )
+                .height(28.dp)
+        ) {
+            // Barra de vida
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier.fillMaxSize(),
+                color = Color.Green,
+            )
+            // Texto sobre la barra
+            Text(
+                text = "${(progress * 100).toInt()}%",
+                fontSize = 16.sp,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
     }
 }
 
@@ -58,8 +70,8 @@ fun PlayerBar(playerName: String, progress: Float, modifier: Modifier = Modifier
 @Composable
 fun WindInfo(direction: String, strength: Int) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("Wind", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Text("Direction: $direction  Strength: $strength", fontSize = 16.sp)
+        Text("Wind", fontSize = 26.sp, fontWeight = FontWeight.Bold)
+        Text("Direction: $direction  Strength: $strength", fontSize = 20.sp)
     }
 }
 
@@ -94,7 +106,7 @@ fun GameGrid(
                     // Celdas
                     Box(
                         modifier = Modifier
-                            .size(32.dp)
+                            .size(52.dp)
                             .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
                             .background(cellColor, RoundedCornerShape(4.dp))
                             .clickable { onCellClick(Pair(rowIndex, colIndex)) }
