@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -45,6 +46,7 @@ fun ManageNavigation(pythonModule: PyObject) {
     var currentScreen by remember { mutableStateOf("gamemodeSelectionScreen") }
     var gamemode by remember { mutableStateOf("User vs AI") }
     var difficulty by remember { mutableStateOf("Normal") }
+    var games by remember { mutableIntStateOf(1) }
     var player1State: PlayerState? = null
     var player2State: PlayerState? = null
 
@@ -64,7 +66,7 @@ fun ManageNavigation(pythonModule: PyObject) {
             currentScreen = "gameScreen"
         }
 
-        "gameScreen" -> GameScreen(gamemode, difficulty, pythonModule) { player1, player2 ->
+        "gameScreen" -> GameScreen(gamemode, difficulty, games, pythonModule) { player1, player2 ->
             player1State = player1
             player2State = player2
             currentScreen = "gameOverScreen"
@@ -72,7 +74,8 @@ fun ManageNavigation(pythonModule: PyObject) {
 
         "gameOverScreen" -> GameOverScreen(player1State, player2State)
 
-        "trainingScreen" -> TrainingScreen { games ->
+        "trainingScreen" -> TrainingScreen { selectedGames ->
+            games = selectedGames
             currentScreen = "gameScreen"
         }
     }

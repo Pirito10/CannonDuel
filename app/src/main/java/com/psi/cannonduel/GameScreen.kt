@@ -61,6 +61,7 @@ fun createPlayerState(row: Int): PlayerState {
 fun GameScreen(
     gamemode: String,
     difficulty: String,
+    trainingGames: Int,
     pythonModule: PyObject,
     onGameOver: (PlayerState, PlayerState) -> Unit
 ) {
@@ -103,6 +104,36 @@ fun GameScreen(
             { selectedCell.value = null },
             onGameOver
         )
+    }
+
+    // Si el modo de juego es entrenamiento, ejecutamos tantas partidas como se hayan configurado
+    if (gamemode == "Training") {
+        for (i in 1..trainingGames) {
+            runAIGame(
+                difficulty,
+                player1State.value,
+                player2State.value,
+                gridState.value,
+                windDirection,
+                windStrength,
+                knownWindDirection,
+                knownWindStrength,
+                infoMessage,
+                { _, _ -> },
+                pythonModule
+            )
+            // Reiniciamos todos los parámetros después de cada partida
+            player1State.value = createPlayerState(5)
+            player2State.value = createPlayerState(0)
+            gridState.value = Array(GRID_SIZE) { Array(GRID_SIZE) { true } }
+            windDirection.value = "N"
+            windStrength.intValue = 0
+            knownWindDirection.value = "?"
+            knownWindStrength.intValue = 0
+        }
+        // Volvemos a la pantalla principal después del entrenamiento
+        onGameOver(player1State.value, player2State.value)
+        return
     }
 
     // Contenedor que ocupa toda la pantalla

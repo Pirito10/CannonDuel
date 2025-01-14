@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.sp
 
 // Función para la pantalla de selección de dificultad
 @Composable
-fun TrainingScreen(onNextClick: (Int) -> Unit) {
-    val numberOfGames = remember { mutableFloatStateOf(100f) }
+fun TrainingScreen(onNextClick: (selectedGames: Int) -> Unit) {
+    val numberOfGames = remember { mutableFloatStateOf(10f) }
 
     // Contenedor que ocupa toda la pantalla
     Box(
@@ -54,7 +54,7 @@ fun TrainingScreen(onNextClick: (Int) -> Unit) {
             Slider(
                 value = numberOfGames.floatValue,
                 onValueChange = { numberOfGames.floatValue = it },
-                valueRange = 1f..1000f,
+                valueRange = 1f..100f,
                 modifier = Modifier.fillMaxWidth(0.8f)
             )
 
