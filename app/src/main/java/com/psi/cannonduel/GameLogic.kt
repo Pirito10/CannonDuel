@@ -23,45 +23,59 @@ fun handleActionButtonClick(
     onClearSelection: () -> Unit,
     onGameOver: () -> Unit
 ) {
-    if (gamemode == "AI vs AI") {
-        while (!checkGameOver(player1State, player2State)) {
-            handleNormalAI(
-                player1State,
-                player2State,
-                gridState,
-                windDirection.value,
-                windStrength.value,
-                knownWindDirection.value,
-                knownWindStrength.value,
-                onGameOver,
-                pythonModule
-            )
-
-            // Verificamos si el juego termina después del turno del jugador 1
-            if (checkGameOver(player1State, player2State)) break
-
-            // Turno del jugador 2 (IA)
-            handleNormalAI(
-                player2State,
-                player1State, // Intercambiamos el orden de los estados
-                gridState,
-                windDirection.value,
-                windStrength.value,
-                knownWindDirection.value,
-                knownWindStrength.value,
-                onGameOver,
-                pythonModule
-            )
-
-            updateWind(
-                windDirection,
-                windStrength,
-                knownWindDirection,
-                knownWindStrength
-            ) // Actualizamos el viento
-        }
+    if (gamemode == "User vs AI") {
+        runUserGame(
+            difficulty,
+            actionText,
+            selectedCell,
+            selectedAmmo,
+            player1State,
+            player2State,
+            gridState,
+            windDirection,
+            windStrength,
+            knownWindDirection,
+            knownWindStrength,
+            onActionChange,
+            onGameOver,
+            pythonModule
+        )
+    } else if (gamemode == "AI vs AI") {
+        runAIGame(
+            difficulty,
+            player1State,
+            player2State,
+            gridState,
+            windDirection,
+            windStrength,
+            knownWindDirection,
+            knownWindStrength,
+            onGameOver,
+            pythonModule
+        )
     }
 
+    // Deseleccionamos la casilla
+    onClearSelection()
+}
+
+// Función para jugar una partida usuario vs IA
+fun runUserGame(
+    difficulty: String,
+    actionText: String,
+    selectedCell: Pair<Int, Int>?,
+    selectedAmmo: MutableState<String>,
+    player1State: PlayerState,
+    player2State: PlayerState,
+    gridState: Array<Array<Boolean>>,
+    windDirection: MutableState<String>,
+    windStrength: MutableState<Int>,
+    knownWindDirection: MutableState<String>,
+    knownWindStrength: MutableState<Int>,
+    onActionChange: (String) -> Unit,
+    onGameOver: () -> Unit,
+    pythonModule: PyObject
+) {
     when (actionText) {
         // Si la acción era disparar, gestionamos el disparo
         "Shoot" -> handleShoot(
@@ -104,9 +118,82 @@ fun handleActionButtonClick(
             updateWind(windDirection, windStrength, knownWindDirection, knownWindStrength)
         }
     }
+}
 
-    // Deseleccionamos la casilla
-    onClearSelection()
+// Función para jugar una partida IA vs IA
+fun runAIGame(
+    difficulty: String,
+    player1State: PlayerState,
+    player2State: PlayerState,
+    gridState: Array<Array<Boolean>>,
+    windDirection: MutableState<String>,
+    windStrength: MutableState<Int>,
+    knownWindDirection: MutableState<String>,
+    knownWindStrength: MutableState<Int>,
+    onGameOver: () -> Unit,
+    pythonModule: PyObject
+) {
+    // Ejecutamos turnos en bucle hasta que termine la partida
+    while (!checkGameOver(player1State, player2State)) {
+        // Turno del jugador 1
+        if (difficulty == "Random") {
+            handleRandomAI(
+                player1State,
+                player2State,
+                gridState,
+                windDirection.value,
+                windStrength.value,
+                onGameOver
+            )
+        } else {
+            handleNormalAI(
+                player1State,
+                player2State,
+                gridState,
+                windDirection.value,
+                windStrength.value,
+                knownWindDirection.value,
+                knownWindStrength.value,
+                onGameOver,
+                pythonModule
+            )
+        }
+
+        // Verificamos si terminó la partida
+        if (checkGameOver(player1State, player2State)) break
+
+        // Turno del jugador 2
+        if (difficulty == "Random") {
+            handleRandomAI(
+                player2State,
+                player1State,
+                gridState,
+                windDirection.value,
+                windStrength.value,
+                onGameOver
+            )
+        } else {
+            handleNormalAI(
+                player2State,
+                player1State,
+                gridState,
+                windDirection.value,
+                windStrength.value,
+                knownWindDirection.value,
+                knownWindStrength.value,
+                onGameOver,
+                pythonModule
+            )
+        }
+
+        // Actualizamos el viento
+        updateWind(
+            windDirection,
+            windStrength,
+            knownWindDirection,
+            knownWindStrength
+        )
+    }
 }
 
 // Función para gestionar la lógica de disparar
