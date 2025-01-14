@@ -72,7 +72,9 @@ fun ManageNavigation(pythonModule: PyObject) {
             currentScreen = "gameOverScreen"
         }
 
-        "gameOverScreen" -> GameOverScreen(player1State, player2State)
+        "gameOverScreen" -> GameOverScreen(player1State, player2State) {
+            currentScreen = "gamemodeSelectionScreen"
+        }
 
         "trainingScreen" -> TrainingScreen { selectedGames ->
             games = selectedGames
