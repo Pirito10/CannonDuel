@@ -105,8 +105,19 @@ fun handleNormalAI(
             else -> error("Invalid ammo type")
         }
 
+        // Procesamos el disparo
+        val hit = processShot(
+            targetCell,
+            mutableStateOf(ammoType),
+            windDirection,
+            windStrength,
+            playerState,
+            enemyState,
+            gridState
+        )
+
         // Actualizamos la tabla Q de disparos
-        val shotReward = calculateShotReward(targetCell, enemyState)
+        val shotReward = calculateShotReward(hit)
         pythonModule.callAttr(
             "update_shoot_q_table",
             pythonModule["q_table_shoot"],
@@ -125,17 +136,6 @@ fun handleNormalAI(
             intArrayOf(targetCell.first, targetCell.second),
             result[2],
             shotReward
-        )
-
-        // Procesamos el disparo
-        processShot(
-            targetCell,
-            mutableStateOf(ammoType),
-            windDirection,
-            windStrength,
-            playerState,
-            enemyState,
-            gridState
         )
     }
 
@@ -197,17 +197,19 @@ fun handleNormalAI(
     )
 }
 
-fun calculateShotReward(target: Pair<*, *>, enemyState: PlayerState): Int {
-    return when (target) {
-        enemyState.position -> 20 // Impacto directo
-        else -> -2 // Penalización por fallo
+// Función para calcular la recompensa tras disparar
+fun calculateShotReward(hit: Boolean): Int {
+    return when (hit) {
+        true -> 20
+        false -> -2
     }
 }
 
+// Función para calcular la recompensa tras moverse
 fun calculateMoveReward(playerState: PlayerState, enemyState: PlayerState): Int {
     return if (playerState.position == enemyState.position) {
-        -10 // Penalización por moverse al mismo lugar que el enemigo
+        -10
     } else {
-        5 // Recompensa por moverse estratégicamente
+        5
     }
 }

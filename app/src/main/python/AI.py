@@ -142,8 +142,7 @@ def update_shoot_q_table(q_table, current_position, enemy_position, wind_directi
 
     # Determinar el estado siguiente
     next_ammo_counts = list(ammo_counts)
-    next_ammo_counts[ammo_type] = max(0,
-                                      next_ammo_counts[ammo_type] - 1)  # Reducir la munición usada
+    next_ammo_counts[ammo_type] += 1
     next_state = (
         target_position[0], target_position[1],
         enemy_position[0], enemy_position[1],

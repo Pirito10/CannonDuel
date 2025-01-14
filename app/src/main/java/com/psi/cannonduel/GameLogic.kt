@@ -224,7 +224,7 @@ fun processShot(
     shooterState: PlayerState,
     targetState: PlayerState,
     gridState: Array<Array<Boolean>>
-) {
+): Boolean {
     // Reducimos la munición del tipo seleccionado
     val ammoType = selectedAmmo.value
     shooterState.ammo[ammoType] = shooterState.ammo[ammoType]!! - 1
@@ -242,17 +242,20 @@ fun processShot(
                 // Si se golpea a sí mismo, le reducimos la vida
                 shooterState.position -> {
                     shooterState.hp = (shooterState.hp - damage).coerceAtLeast(0)
-                    return
+                    return false
                 }
 
                 // Si golpea al rival, le reducimos la vida
                 targetState.position -> {
                     targetState.hp = (targetState.hp - damage).coerceAtLeast(0)
-                    return
+                    return true
                 }
 
                 // Si falla, marcamos la casilla como destruída
-                else -> gridState[hitCell.first][hitCell.second] = false
+                else -> {
+                    gridState[hitCell.first][hitCell.second] = false
+                    return false
+                }
             }
         }
 
@@ -263,17 +266,20 @@ fun processShot(
                 // Si se golpea a sí mismo, le reducimos la vida
                 shooterState.position -> {
                     shooterState.hp = (shooterState.hp - damage).coerceAtLeast(0)
-                    return
+                    return false
                 }
 
                 // Si golpea al rival, le reducimos la vida
                 targetState.position -> {
                     targetState.hp = (targetState.hp - damage).coerceAtLeast(0)
-                    return
+                    return true
                 }
 
                 // Si falla, marcamos la casilla como destruída
-                else -> gridState[targetCell.first][targetCell.second] = false
+                else -> {
+                    gridState[targetCell.first][targetCell.second] = false
+                    return false
+                }
             }
         }
 
@@ -282,6 +288,8 @@ fun processShot(
 
             // Calculamos la casilla golpeada en función del viento
             val hitCell = calculateHitCell(targetCell, windDirection, windStrength)
+
+            var enemyHit = false
 
             // Eliminamos todas las casillas adyacentes
             for (rowOffset in -1..1) {
@@ -294,21 +302,30 @@ fun processShot(
 
                         when (affectedCell) {
                             // Si el propio jugador está en la casilla afectada, le reducimos la vida
-                            shooterState.position -> shooterState.hp =
-                                (shooterState.hp - damage).coerceAtLeast(0)
+                            shooterState.position -> {
+                                shooterState.hp =
+                                    (shooterState.hp - damage).coerceAtLeast(0)
+                            }
 
                             // Si el rival está en una casilla afectada, le reducimos la vida
-                            targetState.position -> targetState.hp =
-                                (targetState.hp - damage).coerceAtLeast(0)
+                            targetState.position -> {
+                                targetState.hp =
+                                    (targetState.hp - damage).coerceAtLeast(0)
+                                enemyHit = true
+                            }
 
                             // Si no hay jugadores, destruímos la casilla
-                            else -> gridState[affectedRow][affectedCol] = false
+                            else -> {
+                                gridState[affectedRow][affectedCol] = false
+                            }
                         }
                     }
                 }
             }
+            return enemyHit
         }
     }
+    return false
 }
 
 // Función para procesar un movimiento
