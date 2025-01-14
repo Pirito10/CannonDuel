@@ -90,190 +90,199 @@ fun GameScreen(
     val infoMessage = remember { mutableStateOf("Choose a target") }
 
     // Si el modo de juego es IA vs IA, ejecutamos directamente la partida sin mostrar la interfaz
-    if (gamemode == "AI vs AI") {
-        handleActionButtonClick(
-            gamemode,
-            difficulty,
-            actionButtonText.value,
-            selectedCell.value,
-            selectedAmmo,
-            player1State.value,
-            player2State.value,
-            gridState.value,
-            windDirection,
-            windStrength,
-            knownWindDirection,
-            knownWindStrength,
-            infoMessage,
-            pythonModule,
-            { actionButtonText.value = it },
-            { selectedCell.value = null },
-            onGameOver
-        )
-        // Si es modo entrenamiento, mostramos una barra de progreso y ejecutamos las partidas
-    } else if (gamemode == "Training") {
-        val trainingProgress = remember { mutableIntStateOf(0) }
+    when (gamemode) {
+        "AI vs AI" -> {
+            handleActionButtonClick(
+                gamemode,
+                difficulty,
+                actionButtonText.value,
+                selectedCell.value,
+                selectedAmmo,
+                player1State.value,
+                player2State.value,
+                gridState.value,
+                windDirection,
+                windStrength,
+                knownWindDirection,
+                knownWindStrength,
+                infoMessage,
+                pythonModule,
+                { actionButtonText.value = it },
+                { selectedCell.value = null },
+                onGameOver
+            )
+        }
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
+        // Si es modo entrenamiento, mostramos una barra de progreso y ejecutamos las partidas
+        "Training" -> {
+            val trainingProgress = remember { mutableIntStateOf(0) }
+
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                Text(text = "Training Progress: ${trainingProgress.intValue}%", fontSize = 20.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-                LinearProgressIndicator(
-                    progress = trainingProgress.intValue / 100f,
-                    modifier = Modifier.fillMaxWidth(),
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Training Progress: ${trainingProgress.intValue}%",
+                        fontSize = 20.sp
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LinearProgressIndicator(
+                        progress = { trainingProgress.intValue / 100f },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+
+            // Ejecutamos el entrenamiento en una corrutina
+            LaunchedEffect(trainingGames) {
+                withContext(Dispatchers.Default) {
+                    for (i in 1..trainingGames) {
+                        // Actualizamos el progreso
+                        trainingProgress.intValue = (i * 100) / trainingGames
+
+                        // Ejecutamos una partida de entrenamiento
+                        runAIGame(
+                            difficulty,
+                            player1State.value,
+                            player2State.value,
+                            gridState.value,
+                            windDirection,
+                            windStrength,
+                            knownWindDirection,
+                            knownWindStrength,
+                            mutableStateOf(""),
+                            { _, _ -> },
+                            pythonModule
+                        )
+
+                        // Reiniciamos todos los parámetros después de cada partida
+                        player1State.value = createPlayerState(5)
+                        player2State.value = createPlayerState(0)
+                        gridState.value = Array(GRID_SIZE) { Array(GRID_SIZE) { true } }
+                        windDirection.value = "N"
+                        windStrength.intValue = 0
+                        knownWindDirection.value = "?"
+                        knownWindStrength.intValue = 0
+                    }
+                }
+                // Finalizamos el entrenamiento
+                onGameOver(player1State.value, player2State.value)
+            }
+        }
+
+        // Si es una partida normal, mostramos la interfaz
+        else -> {
+            // Contenedor que ocupa toda la pantalla
+            Box(Modifier.fillMaxSize()) {
+                // Barra inferior para el jugador 1
+                PlayerBar(
+                    "Player 1 (You)",
+                    player1State.value.hp / MAX_HP.toFloat(),
+                    Modifier.align(Alignment.BottomCenter)
+                )
+
+                // Barra superior para el jugador 2
+                PlayerBar(
+                    "Player 2 (AI)",
+                    player2State.value.hp / MAX_HP.toFloat(),
+                    Modifier.align(Alignment.TopCenter)
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 52.dp)
+                        .align(Alignment.TopCenter),
+                    thickness = 1.dp
+                )
+
+                // Contenedor central para grid, caja de información y barra de combustible
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 64.dp)
+                        .padding(horizontal = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    // Información del viento
+                    WindInfo(knownWindDirection.value, knownWindStrength.intValue)
+
+                    // Grid de juego
+                    GameGrid(
+                        GRID_SIZE,
+                        gridState.value,
+                        player1State.value.position,
+                        player2State.value.lastKnownPosition ?: Pair(-1, -1),
+                        selectedCell.value
+                    ) { selectedCell.value = it }
+
+                    Spacer(Modifier.height(24.dp))
+
+                    // Caja de información
+                    InfoBox(infoMessage.value)
+
+                    Spacer(Modifier.height(12.dp))
+
+                    // Barra de combustible
+                    FuelBar(player1State.value.fuel / MAX_FUEL.toFloat())
+                }
+
+                // Contenedor inferior para selector de munición y botón de acción
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 84.dp)
+                        .padding(horizontal = 20.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Selector de munición
+                    AmmoSelector(
+                        selectedAmmo.value,
+                        player1State.value.ammo
+                    ) { selectedAmmo.value = it }
+
+                    // Botón de acción
+                    ActionButton(actionButtonText.value) {
+                        handleActionButtonClick(
+                            gamemode,
+                            difficulty,
+                            actionButtonText.value,
+                            selectedCell.value,
+                            selectedAmmo,
+                            player1State.value,
+                            player2State.value,
+                            gridState.value,
+                            windDirection,
+                            windStrength,
+                            knownWindDirection,
+                            knownWindStrength,
+                            infoMessage,
+                            pythonModule,
+                            { actionButtonText.value = it },
+                            { selectedCell.value = null },
+                            onGameOver
+                        )
+                    }
+                }
+
+                HorizontalDivider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 52.dp)
+                        .align(Alignment.BottomCenter),
+                    thickness = 1.dp
                 )
             }
-        }
-
-        // Ejecutamos el entrenamiento en una corrutina
-        LaunchedEffect(trainingGames) {
-            withContext(Dispatchers.Default) {
-                for (i in 1..trainingGames) {
-                    // Actualizamos el progreso
-                    trainingProgress.intValue = (i * 100) / trainingGames
-
-                    // Ejecutamos una partida de entrenamiento
-                    runAIGame(
-                        difficulty,
-                        player1State.value,
-                        player2State.value,
-                        gridState.value,
-                        windDirection,
-                        windStrength,
-                        knownWindDirection,
-                        knownWindStrength,
-                        mutableStateOf(""),
-                        { _, _ -> },
-                        pythonModule
-                    )
-
-                    // Reiniciamos todos los parámetros después de cada partida
-                    player1State.value = createPlayerState(5)
-                    player2State.value = createPlayerState(0)
-                    gridState.value = Array(GRID_SIZE) { Array(GRID_SIZE) { true } }
-                    windDirection.value = "N"
-                    windStrength.intValue = 0
-                    knownWindDirection.value = "?"
-                    knownWindStrength.intValue = 0
-                }
-            }
-            // Finalizamos el entrenamiento
-            onGameOver(player1State.value, player2State.value)
-        }
-        // Si es una partida normal, mostramos la interfaz
-    } else {
-        // Contenedor que ocupa toda la pantalla
-        Box(Modifier.fillMaxSize()) {
-            // Barra inferior para el jugador 1
-            PlayerBar(
-                "Player 1 (You)",
-                player1State.value.hp / MAX_HP.toFloat(),
-                Modifier.align(Alignment.BottomCenter)
-            )
-
-            // Barra superior para el jugador 2
-            PlayerBar(
-                "Player 2 (AI)",
-                player2State.value.hp / MAX_HP.toFloat(),
-                Modifier.align(Alignment.TopCenter)
-            )
-
-            HorizontalDivider(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 52.dp)
-                    .align(Alignment.TopCenter),
-                thickness = 1.dp
-            )
-
-            // Contenedor central para grid, caja de información y barra de combustible
-            Column(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 64.dp)
-                    .padding(horizontal = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                // Información del viento
-                WindInfo(knownWindDirection.value, knownWindStrength.intValue)
-
-                // Grid de juego
-                GameGrid(
-                    GRID_SIZE,
-                    gridState.value,
-                    player1State.value.position,
-                    player2State.value.lastKnownPosition ?: Pair(-1, -1),
-                    selectedCell.value
-                ) { selectedCell.value = it }
-
-                Spacer(Modifier.height(24.dp))
-
-                // Caja de información
-                InfoBox(infoMessage.value)
-
-                Spacer(Modifier.height(12.dp))
-
-                // Barra de combustible
-                FuelBar(player1State.value.fuel / MAX_FUEL.toFloat())
-            }
-
-            // Contenedor inferior para selector de munición y botón de acción
-            Row(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 84.dp)
-                    .padding(horizontal = 20.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Selector de munición
-                AmmoSelector(
-                    selectedAmmo.value,
-                    player1State.value.ammo
-                ) { selectedAmmo.value = it }
-
-                // Botón de acción
-                ActionButton(actionButtonText.value) {
-                    handleActionButtonClick(
-                        gamemode,
-                        difficulty,
-                        actionButtonText.value,
-                        selectedCell.value,
-                        selectedAmmo,
-                        player1State.value,
-                        player2State.value,
-                        gridState.value,
-                        windDirection,
-                        windStrength,
-                        knownWindDirection,
-                        knownWindStrength,
-                        infoMessage,
-                        pythonModule,
-                        { actionButtonText.value = it },
-                        { selectedCell.value = null },
-                        onGameOver
-                    )
-                }
-            }
-
-            HorizontalDivider(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 52.dp)
-                    .align(Alignment.BottomCenter),
-                thickness = 1.dp
-            )
         }
     }
 }
