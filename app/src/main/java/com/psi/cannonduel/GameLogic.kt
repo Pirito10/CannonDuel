@@ -241,12 +241,14 @@ fun processShot(
             when (val hitCell = calculateHitCell(targetCell, windDirection, windStrength)) {
                 // Si se golpea a sí mismo, le reducimos la vida
                 shooterState.position -> {
+                    shooterState.previousHp = shooterState.hp
                     shooterState.hp = (shooterState.hp - damage).coerceAtLeast(0)
                     return false
                 }
 
                 // Si golpea al rival, le reducimos la vida
                 targetState.position -> {
+                    targetState.previousHp = targetState.hp
                     targetState.hp = (targetState.hp - damage).coerceAtLeast(0)
                     return true
                 }
@@ -265,12 +267,14 @@ fun processShot(
             when (targetCell) {
                 // Si se golpea a sí mismo, le reducimos la vida
                 shooterState.position -> {
+                    shooterState.previousHp = shooterState.hp
                     shooterState.hp = (shooterState.hp - damage).coerceAtLeast(0)
                     return false
                 }
 
                 // Si golpea al rival, le reducimos la vida
                 targetState.position -> {
+                    targetState.previousHp = targetState.hp
                     targetState.hp = (targetState.hp - damage).coerceAtLeast(0)
                     return true
                 }
@@ -303,12 +307,14 @@ fun processShot(
                         when (affectedCell) {
                             // Si el propio jugador está en la casilla afectada, le reducimos la vida
                             shooterState.position -> {
+                                shooterState.previousHp = shooterState.hp
                                 shooterState.hp =
                                     (shooterState.hp - damage).coerceAtLeast(0)
                             }
 
                             // Si el rival está en una casilla afectada, le reducimos la vida
                             targetState.position -> {
+                                targetState.previousHp = targetState.hp
                                 targetState.hp =
                                     (targetState.hp - damage).coerceAtLeast(0)
                                 enemyHit = true

@@ -30,6 +30,7 @@ const val GRID_SIZE = 6
 // Clase para encapsular el estado de los jugadores
 data class PlayerState(
     var hp: Int,
+    var previousHp: Int,
     var ammo: MutableMap<String, Int>,
     var fuel: Int,
     var position: Pair<Int, Int>,
@@ -42,6 +43,7 @@ fun createPlayerState(row: Int): PlayerState {
     val startingCell = Pair(row, Random.nextInt(GRID_SIZE))
 
     return PlayerState(
+        MAX_HP,
         MAX_HP,
         mutableMapOf(
             "Standard" to MAX_STANDARD_AMMO,
