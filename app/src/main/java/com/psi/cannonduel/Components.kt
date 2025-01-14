@@ -144,17 +144,29 @@ fun FuelBar(fuelLevel: Float) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = "Fuel",
-            fontSize = 18.sp,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 4.dp)
         )
-        LinearProgressIndicator(
-            progress = { fuelLevel },
+        // Contenedor para la barra y el texto
+        Box(
             modifier = Modifier
                 .fillMaxWidth(1.0f)
-                .height(12.dp),
-            color = Color.Green,
-        )
+                .height(28.dp)
+        ) {
+            // Barra de combustible
+            LinearProgressIndicator(
+                progress = { fuelLevel },
+                modifier = Modifier.fillMaxSize(),
+                color = Color.Green,
+            )
+            // Texto del porcentaje
+            Text(
+                text = "${(fuelLevel * 100).toInt()}%",
+                fontSize = 16.sp,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
     }
 }
 

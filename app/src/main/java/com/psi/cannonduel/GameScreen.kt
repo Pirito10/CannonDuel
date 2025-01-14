@@ -148,12 +148,12 @@ fun GameScreen(
                 selectedCell.value
             ) { selectedCell.value = it }
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(24.dp))
 
             // Caja de información
             InfoBox(infoMessage.value)
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(12.dp))
 
             // Barra de combustible
             FuelBar(player1State.value.fuel / MAX_FUEL.toFloat())
@@ -162,9 +162,10 @@ fun GameScreen(
         // Contenedor inferior para selector de munición y botón de acción
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 20.dp)
-                .align(Alignment.BottomCenter),
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 84.dp)
+                .padding(horizontal = 20.dp)
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -196,5 +197,13 @@ fun GameScreen(
                 )
             }
         }
+
+        HorizontalDivider(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 52.dp)
+                .align(Alignment.BottomCenter),
+            thickness = 1.dp
+        )
     }
 }
