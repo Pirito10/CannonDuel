@@ -11,3 +11,7 @@ local.properties
 /gradle/wrapper
 gradlew
 gradlew.bat
+/app/build
+/app/src/test
+/app/src/androidTest
+/app/pro-guard-rules.pro
